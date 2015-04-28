@@ -62,9 +62,15 @@ function loadObjFile(data, shading) {
                 var v0 = elements[0].split("/");
                 var v1 = elements[1].split("/");
                 var v2 = elements[2].split("/");
+                var v3 = elements.length == 3 ? undefined : elements[3].split("/");
                 
                 faces.push([ v0, v1, v2 ]);
                 f_count++;
+
+                if (v3 !== undefined) {
+                    faces.push([ v0, v2, v3 ]);
+                    f_count++;
+                }
                 break;
         }
     }
