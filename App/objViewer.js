@@ -1,3 +1,6 @@
+// OBS: Não está mais sendo desenhado o cubo na inicialização
+// desenha apenas os objetos que são carregados a partir dos .obj
+
 var program;
 var canvas;
 var gl;
@@ -6,6 +9,15 @@ var numVertices  = 36;
 
 var pointsArray = [];
 var normalsArray = [];
+
+// Os vertices e normais de todos os objetos.
+var pointsArrayAll = [];
+var normalsArrayAll = [];
+// Um buffer para cada objeto.
+var nBuffers = [];
+var vBuffers = [];
+
+var quant_objects = 0;
 
 var vertices = [
         vec4( -0.5, -0.5,  0.5, 1.0 ),
@@ -32,6 +44,14 @@ var materialShininess = 100.0;
 var modelViewMatrix, projectionMatrix;
 var modelViewMatrixLoc, projectionMatrixLoc;
 
+// matriz de translacao
+var transMatrix;
+var transMatrixLoc;
+
+// matriz de escala
+var scaleMatrix;
+var scaleMatrixLoc;
+
 //var ctm;
 var ambientColor, diffuseColor, specularColor;
 
@@ -41,9 +61,9 @@ var zAxis = 2;
 var axis = 1;
 var theta =[0, 0, 0];
 
-var centroid = [ 0, 0, 0 ];
+var centroid = [];
 var dimension = {};
-var dmax = 2;
+var dmax = [];
 
 var thetaLoc;
 
@@ -141,7 +161,8 @@ window.onload = function init() {
     if (first) { colorCube(); first = !first; }
 
     // create vertex and normal buffers
-    createBuffers();
+    // Não está criando o cubo no começo da execução.
+    //createBuffers()
 
     thetaLoc = gl.getUniformLocation(program, "theta"); 
 
@@ -153,6 +174,11 @@ window.onload = function init() {
     // create model view and projection matrices
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
     projectionMatrixLoc = gl.getUniformLocation(program, "projectionMatrix");
+
+    // cria a matriz de translação
+    transMatrixLoc = gl.getUniformLocation(program, "transMatrix");
+    // cria a matriz de escala
+    scaleMatrixLoc = gl.getUniformLocation(program, "scaleMatrix");
 
     document.getElementById("ButtonX").onclick = function(){axis = xAxis;};
     document.getElementById("ButtonY").onclick = function(){axis = yAxis;};
@@ -174,7 +200,10 @@ window.onload = function init() {
 
             reader.onload = function(e) {
                 loadObject(e.target.result);
-                createBuffers();
+                //carregou mais um objeto.
+                quant_objects++;
+                //render();
+                //createBuffers();
             };
 
             reader.readAsText(f);
@@ -198,21 +227,24 @@ window.onload = function init() {
 
 var render = function() {
 
-    if (shading != old_shading) {
+    // Não está aletarando os shadings. Utiliza sempre smooth shading
+    /*if (shading != old_shading) {
         switch (shading) {
           case fileShading:   normalsArray = fileNormals;   break;
           case flatShading:   normalsArray = flatNormals;   break;
           case smoothShading: normalsArray = smoothNormals; break;
         }
-        createBuffers()
+        createBuffers();
         old_shading = shading;
         console.log("Changind to " + shading);
-    }
+    }*/
+
+    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     var wrapper = document.getElementById( "gl-wrapper" );
     var ratio = wrapper.clientHeight/wrapper.clientWidth;
             
-    gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    
             
     if (flag) theta[axis] += 2.0;
             
@@ -222,36 +254,52 @@ var render = function() {
 
     modelViewMatrix = lookAt(eye, at, up);
               
+    // Cria a matriz de model view.
     modelViewMatrix = mult(modelViewMatrix, scaleM(vec3(ratio, 1, 1)));
     modelViewMatrix = mult(modelViewMatrix, rotate(theta[xAxis], [1, 0, 0] ));
     modelViewMatrix = mult(modelViewMatrix, rotate(theta[yAxis], [0, 1, 0] ));
     modelViewMatrix = mult(modelViewMatrix, rotate(theta[zAxis], [0, 0, 1] ));
-    modelViewMatrix = mult(modelViewMatrix, scaleM(vec3(2/dmax, 2/dmax, 2/dmax)));
-    modelViewMatrix = mult(modelViewMatrix, translate(negate(centroid)));
-    
-    projectionMatrix = ortho(xleft, xright, ybottom, ytop, znear, zfar);
-
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
+
+    // Cria a matriz de projeção ortogonal
+    projectionMatrix = ortho(xleft, xright, ybottom, ytop, znear, zfar);
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
 
-    gl.drawArrays( gl.TRIANGLES, 0, pointsArray.length );
+    // Para cada objeto que existe no canvas crias buffers correspondentes aos
+    // vertices e normais desse objeto.
+    // Cria a matriz de translação e escala especifica para redimensionar e color
+    // o objeto no centro do canvas e desenha o objeto.
+    for (i = 0; i < quant_objects; i++)
+    {
+        createBuffers(i);
+        // Cria a matriz de tranlação, para colocar o centro do objeto na origem.
+        transMatrix = translate(negate(centroid[i]));
+        gl.uniformMatrix4fv(transMatrixLoc, false, flatten(transMatrix));
+
+        // Cria a matriz de escala, para colocar o objeto todo do canvas.
+        scaleMatrix = scaleM( vec3(2/dmax[i], 2/dmax[i], 2/dmax[i]) );
+        gl.uniformMatrix4fv( scaleMatrixLoc, false, flatten(scaleMatrix) );
+
+        // Desenha os triangulos de cada objeto.        
+        gl.drawArrays( gl.TRIANGLES, 0, pointsArrayAll[i].length );
+    }    
 
     requestAnimFrame(render);
 }
 
-function createBuffers(points, normals) {
-
-    var nBuffer = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer );
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW );
+function createBuffers(object) {
+    
+    nBuffers[object] = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, nBuffers[object] );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(normalsArrayAll[object]), gl.STATIC_DRAW );
     
     var vNormal = gl.getAttribLocation( program, "vNormal" );
     gl.vertexAttribPointer( vNormal, 4, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vNormal );
 
-    var vBuffer = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW );
+    vBuffers[object] = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, vBuffers[object] );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(pointsArrayAll[object]), gl.STATIC_DRAW );
     
     var vPosition = gl.getAttribLocation(program, "vPosition");
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
@@ -263,20 +311,23 @@ function loadObject(data) {
     // TO DO: convert strings into array of vertex and normal vectors
     var result = loadObjFile(data, shading);
     
-    centroid      = result[0];
-    pointsArray   = result[1];
     fileNormals   = result[2];
     flatNormals   = result[3];
     smoothNormals = result[4];
     dimension     = result[5];
+    centroid.push(result[0]);  
+    pointsArrayAll.push(result[1]);
     
     if (fileNormals.length == 0) fileNormals = smoothNormals;
 
-    dmax = Math.sqrt(
+    dmax.push(Math.sqrt(
         Math.pow(dimension.maxX-dimension.minX, 2)
         + Math.pow(dimension.maxY-dimension.minY, 2)
         + Math.pow(dimension.maxZ-dimension.minZ, 2)
-    );
+    ));
 
-    normalsArray = smoothNormals;
+    normalsArrayAll.push(smoothNormals);
+
+    console.log(centroid);
+    console.log(dmax);
 }

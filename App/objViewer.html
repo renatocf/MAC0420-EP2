@@ -21,6 +21,12 @@
     uniform mat4 projectionMatrix;
     
     uniform vec4 lightPosition;
+
+    // matriz de translacao
+    uniform mat4 transMatrix;
+
+    // matriz de escala
+    uniform mat4 scaleMatrix;
     
     void main()
     {
@@ -49,7 +55,7 @@
     	   specular = vec4(0.0, 0.0, 0.0, 1.0);
         } 
     
-        gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+        gl_Position = projectionMatrix * modelViewMatrix * scaleMatrix * transMatrix * vPosition;
         
         fColor = ambient + diffuse +specular;
         
