@@ -3,5 +3,6 @@
     [ ] Perspective projection.
 
 [Renato]
+    [X] Refactor to use object oriented style.
     [ ] Get mouse events (click and release).
-    [ ] Think about zoom in/zoom out matrices. 
+    [ ] Think about zoom in/zoom out matrices.
