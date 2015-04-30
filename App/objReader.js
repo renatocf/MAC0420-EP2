@@ -8,7 +8,7 @@ function loadObjFile(data) {
         minX: Infinity, maxX: -Infinity,
         minY: Infinity, maxY: -Infinity,
         minZ: Infinity, maxZ: -Infinity
-    }
+    };
 
     var vertices = [];
     var normals = [];
