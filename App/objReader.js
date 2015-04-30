@@ -145,5 +145,28 @@ function loadObjFile(data, shading) {
     }
 
 	// TO DO: (iii) Return vertices and normals and any associated information you might find useful
-    return [ centroid, pointsArray, fileNormals, flatNormals, smoothNormals, dimension ];
+    var newObject = {
+        centroid:      centroid,
+        pointsArray:   pointsArray,
+        fileNormals:   fileNormals,
+        flatNormals:   flatNormals,
+        smoothNormals: smoothNormals,
+        dimension:     dimension
+    };
+
+    if (newObject.fileNormals.length == 0)
+        newObject.fileNormals = newObject.smoothNormals;
+
+    newObject.radius = boundingSphereRadius(newObject);
+
+    return newObject;
+}
+
+function boundingSphereRadius(object) {
+    var diameter = Math.sqrt(
+        Math.pow(object.dimension.maxX - object.dimension.minX, 2)
+        + Math.pow(object.dimension.maxY - object.dimension.minY, 2)
+        + Math.pow(object.dimension.maxZ - object.dimension.minZ, 2)
+    );
+    return diameter/2;
 }
