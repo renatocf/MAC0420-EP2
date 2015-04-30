@@ -1,6 +1,7 @@
 [Helena]
     [X] Finish loading more than one objects.
-    [ ] Perspective projection.
+    [X] Perspective projection.
+    [ ] Think about rotation with quaternions.
 
 [Renato]
     [X] Refactor to use object oriented style.
