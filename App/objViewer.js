@@ -29,9 +29,9 @@ var zAxis = 2;
 var axis = 1;
 var theta =[0, 0, 0];
 
-var centroid = [];
-var dimension = {};
-var dmax = [];
+//var centroid = [];
+//var dimension = {};
+//var dmax = [];
 
 var thetaLoc;
 
@@ -40,17 +40,14 @@ var eye = vec3(1.0, 0.0, 0.0);
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
-var cradius = 1.0;
+var cradius = 2.0;
 var ctheta = 0.0;
 var cphi = 0.0;
 
 // our universe
-var xleft = -1.0;
-var xright = 1.0;
-var ybottom = -1.0;
-var ytop = 1.0;
-var znear = -100.0;
-var zfar = 100.0;
+var near = -1.0;
+var far = 1.0;
+var fovy = 45.0;  // Field-of-view in Y direction angle (in degrees)
 
 var flag = true;
 
@@ -157,14 +154,14 @@ var render = function() {
 
     // create model view matrix
     modelViewMatrix = lookAt(eye, at, up);
-    modelViewMatrix = mult(modelViewMatrix, scaleM(vec3(ratio, 1, 1)));
+    modelViewMatrix = mult(modelViewMatrix, scaleM(vec3(ratio, ratio, ratio)));
     modelViewMatrix = mult(modelViewMatrix, rotate(theta[xAxis], [1, 0, 0] ));
     modelViewMatrix = mult(modelViewMatrix, rotate(theta[yAxis], [0, 1, 0] ));
     modelViewMatrix = mult(modelViewMatrix, rotate(theta[zAxis], [0, 0, 1] ));
     gl.uniformMatrix4fv( modelViewMatrixLoc, false, flatten(modelViewMatrix) );
 
-    // create orthogonal projection matrix
-    projectionMatrix = ortho(xleft, xright, ybottom, ytop, znear, zfar);
+    // create persperctive projection matrix
+    projectionMatrix = perspective(fovy, 1/ratio, near, far);
     gl.uniformMatrix4fv( projectionMatrixLoc, false, flatten(projectionMatrix) );
 
     for (i = 0; i < objects.length; i++)
