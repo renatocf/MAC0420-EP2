@@ -10,13 +10,8 @@ function loadObjFile(data) {
         minZ: Infinity, maxZ: -Infinity
     }
 
-    var v_count = 0;
     var vertices = [];
-
-    var vn_count = 0;
     var normals = [];
-
-    var f_count = 0;
     var faces = [];
     
     var pointsArray = [];
@@ -45,7 +40,6 @@ function loadObjFile(data) {
                 if(y > dimension.maxY) dimension.maxY = y;
                 if(z > dimension.maxZ) dimension.maxZ = z;
 
-                v_count++;
                 break;
 
             case "vn":
@@ -55,7 +49,6 @@ function loadObjFile(data) {
                 var v3 = elements.length == 3 ? 0.0 : parseFloat(elements[3]);
                 
                 normals.push(vec4(v0, v1, v2, v3));
-                vn_count++;
                 break;
 
             case "f":
@@ -65,12 +58,10 @@ function loadObjFile(data) {
                 var v3 = elements.length == 3 ? undefined : elements[3].split("/");
                 
                 faces.push([ v0, v1, v2 ]);
-                f_count++;
-
-                if (v3 !== undefined) {
+                
+                if (v3 !== undefined)
                     faces.push([ v0, v2, v3 ]);
-                    f_count++;
-                }
+                
                 break;
         }
     }
