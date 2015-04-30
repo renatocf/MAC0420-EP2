@@ -1,4 +1,4 @@
-function loadObjFile(data, shading) {
+function loadObjFile(data) {
 
 	// TO DO:   (i) Parse OBJ file and extract vertices and normal vectors
 

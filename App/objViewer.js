@@ -211,7 +211,7 @@ function createBuffers(object) {
 function loadObject(data) {
 
     // TO DO: convert strings into array of vertex and normal vectors
-    var newObject = loadObjFile(data, shading);
+    var newObject = loadObjFile(data);
 
     newObject.selectShading = function() {
         switch (shading) {
