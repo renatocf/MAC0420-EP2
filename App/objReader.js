@@ -13,14 +13,14 @@ function loadObjFile(data) {
     var vertices = [];
     var normals = [];
     var faces = [];
-    
+
     var pointsArray = [];
     var fileNormals = [];
     var flatNormals = [];
     var smoothNormals = [];
 
     for (var i = 0; i < lines.length; i++) {
-        
+
         var elements = lines[i].split(/\s+/);
         switch (elements.shift()) {
 
@@ -29,7 +29,7 @@ function loadObjFile(data) {
                 var y = parseFloat(elements[1]);
                 var z = parseFloat(elements[2]);
                 var w = elements.length == 3 ? 1.0 : parseFloat(elements[3]);
-                
+
                 vertices.push(vec4(x, y, z, w));
 
                 if(x < dimension.minX) dimension.minX = x;
@@ -47,7 +47,7 @@ function loadObjFile(data) {
                 var v1 = parseFloat(elements[1]);
                 var v2 = parseFloat(elements[2]);
                 var v3 = elements.length == 3 ? 0.0 : parseFloat(elements[3]);
-                
+
                 normals.push(vec4(v0, v1, v2, v3));
                 break;
 
@@ -56,12 +56,12 @@ function loadObjFile(data) {
                 var v1 = elements[1].split("/");
                 var v2 = elements[2].split("/");
                 var v3 = elements.length == 3 ? undefined : elements[3].split("/");
-                
+
                 faces.push([ v0, v1, v2 ]);
-                
+
                 if (v3 !== undefined)
                     faces.push([ v0, v2, v3 ]);
-                
+
                 break;
         }
     }
@@ -81,7 +81,7 @@ function loadObjFile(data) {
         (dimension.maxY+dimension.minY)/2,
         (dimension.maxZ+dimension.minZ)/2
     );
-    
+
 	// TO DO:  (ii) If normal vectors are not in the file, you will need to calculate them
 
     // Normals for flat shading
