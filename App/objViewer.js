@@ -123,6 +123,53 @@ window.onload = function init() {
         }
     };
 
+    document.onmousedown = function (evt) {
+        var x = evt.clientX;
+        var y = evt.clientY;
+        switch (evt.which) {
+            case 1:
+                console.log("Left - Rotate");
+                console.log(x);
+                console.log(y);
+                console.log(viewportToCanonicalCoordinates(x, y));
+                break;
+            case 2:
+                console.log("Middle");
+                console.log(x);
+                console.log(y);
+                console.log(viewportToCanonicalCoordinates(x, y));
+                break;
+            case 3:
+                console.log("Right - Zoom");
+                console.log(x);
+                console.log(y);
+                console.log(viewportToCanonicalCoordinates(x, y));
+                break;
+        }
+    };
+    
+    document.onmouseup = function (evt) {
+        var x = evt.clientX;
+        var y = evt.clientY;
+        switch (evt.which) {
+            case 1:
+                console.log("Left - Rotate");
+                console.log(x, y);
+                console.log(viewportToCanonicalCoordinates(x, y));
+                break;
+            case 2:
+                console.log("Middle");
+                console.log(x, y);
+                console.log(viewportToCanonicalCoordinates(x, y));
+                break;
+            case 3:
+                console.log("Right - Zoom");
+                console.log(x, y);
+                console.log(viewportToCanonicalCoordinates(x, y));
+                break;
+        }
+    };
+
     gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
        flatten(ambientProduct));
     gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
@@ -220,4 +267,17 @@ function loadObject(data) {
 
     objects.push(newObject);
     console.log(newObject);
+}
+
+function viewportToCanonicalCoordinates(x, y) {
+    var vp_right = document.documentElement.clientWidth;
+    var vp_top = document.documentElement.clientHeight;
+    var can_x;
+    var can_y;
+
+    can_x = (x * (2/vp_right)) - 1;
+    // O ponto (0, 0) no canvas e o conto superior esquerdo.
+    can_y = 1 - (y * (2/vp_top));
+
+    return [can_x, can_y];  
 }
