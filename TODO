@@ -1,7 +1,9 @@
 [Helena]
     [X] Finish loading more than one objects.
     [X] Perspective projection.
-    [ ] Think about rotation with quaternions.
+    [X] Think about rotation with quaternions.
+    [X] Get mouse events and coordinates of click and release.
+    [ ]	Try to fix rotation for x-axis.
 
 [Renato]
     [X] Refactor to use object oriented style.
