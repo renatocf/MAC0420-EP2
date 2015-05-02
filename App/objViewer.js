@@ -20,6 +20,11 @@ var modelViewMatrixLoc, projectionMatrixLoc;
 var transMatrix, scaleMatrix;
 var transMatrixLoc, scaleMatrixLoc;
 
+// rotate matrix
+var rotateMatrix, rotateMatrixLoc;
+// rotation quaternion
+var rquat = [0, 0, 0, 1];
+
 //var ctm;
 var ambientColor, diffuseColor, specularColor;
 
@@ -97,6 +102,9 @@ window.onload = function init() {
     transMatrixLoc = gl.getUniformLocation(program, "transMatrix");
     scaleMatrixLoc = gl.getUniformLocation(program, "scaleMatrix");
 
+    // create rotation matrix
+    rotateMatrixLoc = gl.getUniformLocation(program, "rotateMatrix");
+
     document.getElementById("ButtonX").onclick = function(){axis = xAxis;};
     document.getElementById("ButtonY").onclick = function(){axis = yAxis;};
     document.getElementById("ButtonZ").onclick = function(){axis = zAxis;};
@@ -156,6 +164,14 @@ window.onload = function init() {
                 console.log("Left - Rotate");
                 console.log(x, y);
                 console.log(viewportToCanonicalCoordinates(x, y));
+                // rotacionar 45 graus toda vez que soltar o mouse.
+                if (objects)
+                {
+                    var axis = [0, 1, 0];
+                    //axis = normalize(axis);
+                    var lquat = createRotationQuaternion(axis, 45);
+                    rquat = quaternionMulti(lquat, rquat);
+                }
                 break;
             case 2:
                 console.log("Middle");
@@ -202,14 +218,18 @@ var render = function() {
     // create model view matrix
     modelViewMatrix = lookAt(eye, at, up);
     modelViewMatrix = mult(modelViewMatrix, scaleM(vec3(ratio, ratio, ratio)));
-    modelViewMatrix = mult(modelViewMatrix, rotate(theta[xAxis], [1, 0, 0] ));
-    modelViewMatrix = mult(modelViewMatrix, rotate(theta[yAxis], [0, 1, 0] ));
-    modelViewMatrix = mult(modelViewMatrix, rotate(theta[zAxis], [0, 0, 1] ));
+    //modelViewMatrix = mult(modelViewMatrix, rotate(theta[xAxis], [1, 0, 0] ));
+    //modelViewMatrix = mult(modelViewMatrix, rotate(theta[yAxis], [0, 1, 0] ));
+    //modelViewMatrix = mult(modelViewMatrix, rotate(theta[zAxis], [0, 0, 1] ));
     gl.uniformMatrix4fv( modelViewMatrixLoc, false, flatten(modelViewMatrix) );
 
     // create persperctive projection matrix
     projectionMatrix = perspective(fovy, 1/ratio, near, far);
     gl.uniformMatrix4fv( projectionMatrixLoc, false, flatten(projectionMatrix) );
+
+    // create rotation matrix from quaternion
+    rotateMatrix = createRotMatrixFromQuat( rquat );
+    gl.uniformMatrix4fv( rotateMatrixLoc, false, flatten(rotateMatrix) );
 
     for (i = 0; i < objects.length; i++)
     {
