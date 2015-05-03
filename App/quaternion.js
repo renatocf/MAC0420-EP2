@@ -22,8 +22,7 @@ function quaternionMulti(q1, q2) {
 
 function  createRotMatrixFromQuat(quat) {
 	var rmatrix = mat4();
-	var mag = 
-
+	
 	rmatrix[0][0] = 1 - 2*quat[1]*quat[1] - 2*quat[2]*quat[2];
 	rmatrix[0][1] = 2*quat[0]*quat[1] + 2*quat[3]*quat[2];
 	rmatrix[0][2] = 2*quat[0]*quat[2] - 2*quat[3]*quat[1];
@@ -38,7 +37,6 @@ function  createRotMatrixFromQuat(quat) {
 	rmatrix[2][3] = 0;
 	rmatrix[3] 	  = vec4(0, 0, 0, 1);
 
-	console.log(rmatrix);
 	return rmatrix;
 
 }
