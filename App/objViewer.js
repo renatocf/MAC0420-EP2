@@ -25,6 +25,16 @@ var rotateMatrix, rotateMatrixLoc;
 // rotation quaternion
 var rquat = [0, 0, 0, 1];
 
+// tranlation matrix responsible for zoom in and zoom out.
+var zoomMatrix;
+var zoomCoords = [0.0, 0.0, 0.0];
+
+// Mouse click coordinates
+var mouseupX, mouseupY;
+var mousedownX, mousedownY;
+var mupcanX, mupcanY;
+var mdowncanX, mdowncanY;
+
 //var ctm;
 var ambientColor, diffuseColor, specularColor;
 
@@ -132,56 +142,79 @@ window.onload = function init() {
     };
 
     document.onmousedown = function (evt) {
-        var x = evt.clientX;
-        var y = evt.clientY;
+        mousedownX = evt.clientX;
+        mousedownY = evt.clientY;
+        var rst = viewportToCanonicalCoordinates(mousedownX, mousedownY);
+        mdowncanX = rst[0];
+        mdowncanY = rst[1];
         switch (evt.which) {
             case 1:
-                console.log("Left - Rotate");
-                console.log(x);
-                console.log(y);
-                console.log(viewportToCanonicalCoordinates(x, y));
-                break;
-            case 2:
-                console.log("Middle");
-                console.log(x);
-                console.log(y);
-                console.log(viewportToCanonicalCoordinates(x, y));
-                break;
-            case 3:
-                console.log("Right - Zoom");
-                console.log(x);
-                console.log(y);
-                console.log(viewportToCanonicalCoordinates(x, y));
+                if (evt.shiftKey) {
+                    // Selecionar o objeto mais proximo da camera.
+                    // Não sei como!
+                } 
                 break;
         }
+
     };
     
     document.onmouseup = function (evt) {
-        var x = evt.clientX;
-        var y = evt.clientY;
+        mouseupX = evt.clientX;
+        mouseupY = evt.clientY;
+        var rst = viewportToCanonicalCoordinates(mouseupX, mouseupY);
+        mupcanX = rst[0];
+        mupcanY = rst[1];
         switch (evt.which) {
             case 1:
-                console.log("Left - Rotate");
-                console.log(x, y);
-                console.log(viewportToCanonicalCoordinates(x, y));
-                // rotacionar 45 graus toda vez que soltar o mouse.
-                if (objects)
-                {
-                    var axis = [0, 1, 0];
-                    //axis = normalize(axis);
-                    var lquat = createRotationQuaternion(axis, 45);
-                    rquat = quaternionMulti(lquat, rquat);
+                // Não acho que seja o modo certo de fazer isso!!
+                // Não está parecendo certo isso!!
+                // Não está funcionando muito bem!!
+                console.log("MOUSE!!");
+                if (objects.length != 0) {
+                    var p1 = [0.0, 0.0, 0.0]; // center of de canonical volume
+                    var p0 = [mupcanX, mupcanY, 1.0];
+                    var p2 = [mdowncanX, mdowncanY, 1.0];
+                    
+                    // The axis of the rotation is the normal of the
+                    // triagle formed by the center of the canonical volume
+                    // and the points where occurs the mouse click events.
+                    var normal = normalOfTriagle(p0, p1, p2);
+
+                    // O angulo de rotação é gerado a partir da proporção
+                    // do deslocamento do mouse: 360 graus - move o mouse
+                    // de um lado ao outro da tela ou se cima para baixo.
+                    var d1 = mupcanX - mdowncanX;
+                    var d2 = mupcanY - mdowncanY;
+                    
+                    if ( Math.abs(d1) > Math.abs(d2) )
+                        angle = (360.0 * d1) / 2.0;
+                    else
+                        angle = (360.0 * d2) / 2.0;
+
+                    console.log(angle);
+
+                    if ( !isNaN(normal[0]) ) {
+                        var axis = normal;
+                        console.log(axis);
+                        var lquat = createRotationQuaternion(axis, angle);
+                        rquat = quaternionMulti(lquat, rquat);
+                    }                    
                 }
                 break;
-            case 2:
-                console.log("Middle");
-                console.log(x, y);
-                console.log(viewportToCanonicalCoordinates(x, y));
-                break;
             case 3:
-                console.log("Right - Zoom");
-                console.log(x, y);
-                console.log(viewportToCanonicalCoordinates(x, y));
+                // Zoom in and zoom out.
+                var d1 = mupcanX - mdowncanX;
+                var d2 = mupcanY - mdowncanY;
+                if ( Math.abs(d1) > Math.abs(d2) )
+                    zoomCoords[2] = zoomCoords[2] + d1;
+                else
+                    zoomCoords[2] = zoomCoords[2] + d2;
+
+                if (zoomCoords[2] > 1)
+                    zoomCoords[2] = 1;
+                else if (zoomCoords[2] < -1)
+                    zoomCoords[2] = -1;
+                //console.log(zoomCoords[2]);
                 break;
         }
     };
@@ -221,6 +254,10 @@ var render = function() {
     //modelViewMatrix = mult(modelViewMatrix, rotate(theta[xAxis], [1, 0, 0] ));
     //modelViewMatrix = mult(modelViewMatrix, rotate(theta[yAxis], [0, 1, 0] ));
     //modelViewMatrix = mult(modelViewMatrix, rotate(theta[zAxis], [0, 0, 1] ));
+
+    zoomMatrix = translate( zoomCoords );
+    modelViewMatrix = mult(modelViewMatrix, zoomMatrix);
+
     gl.uniformMatrix4fv( modelViewMatrixLoc, false, flatten(modelViewMatrix) );
 
     // create persperctive projection matrix
@@ -300,4 +337,14 @@ function viewportToCanonicalCoordinates(x, y) {
     can_y = 1 - (y * (2/vp_top));
 
     return [can_x, can_y];  
+}
+
+function normalOfTriagle(p0, p1, p2)
+{
+    var a = subtract(p1, p0);
+    var b = subtract(p2, p1);    
+    var normal = vec4(cross(a, b), 0);
+    normal = normalize(normal);
+
+    return normal;
 }
