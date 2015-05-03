@@ -31,6 +31,11 @@ var mousedownX, mousedownY;
 var mupcanX, mupcanY;
 var mdowncanX, mdowncanY;
 
+var selectObj = false;
+var flagT = false;
+var flagR = false;
+var flagS = false;
+
 //var ctm;
 var ambientColor, diffuseColor, specularColor;
 
@@ -148,6 +153,7 @@ window.onload = function init() {
                 if (evt.shiftKey) {
                     // Selecionar o objeto mais proximo da camera.
                     // Não sei como!
+                    selectObj = true;
                 } 
                 break;
         }
@@ -199,7 +205,80 @@ window.onload = function init() {
                 break;
             case 3:
                 // Zoom in and zoom out.
+                break;
         }
+    };
+
+    document.onkeyup = function (evt) {
+        console.log(evt.keyCode);
+        if (selectObj) {  // if there is a selected object.
+            switch (evt.keyCode) {
+                case 46: // delete key
+                    alert("Delect object");
+                    // remove o objeto de objects.
+                    selectObj = false;                
+                    break;
+                case 88: // x key
+                    if (flagT) {
+                        alert("translate on x-axis");
+                        flagT = false;
+                    }
+                    else if (flagR) {
+                        alert("rotate on x-axis");
+                        flagR = false;
+                    }
+                    else if (flagS) {
+                        alert("scale on x-axis");
+                        flagS = false;
+                    }
+                    else { 
+                        alert("Delect object");
+                    // remove o objeto de objects.
+                    selectObj = false; 
+                    }               
+                    break;
+                case 89: // y key
+                    if (flagT) {
+                        alert("translate on y-axis");
+                        flagT = false;
+                    }
+                    else if (flagR) {
+                        alert("rotate on y-axis");
+                        flagR = false;
+                    }
+                    else if (flagS) {
+                        alert("scale on y-axis");
+                        flagS = false; 
+                    } 
+                    break;
+                case 90: // z key
+                    if (flagT) {
+                        alert("translate on z-axis");
+                        flagT = false;
+                    }
+                    else if (flagR) {
+                        alert("rotate on z-axis");
+                        flagR = false;
+                    }
+                    else if (flagS) {
+                        alert("scale on z-axis");
+                        flagS = false;
+                    }
+                    break;
+                case 84: // t key                
+                    alert("translate object");
+                    flagT = true;
+                    break;
+                case 83: // s key
+                    alert("Scale object");
+                    flagS = true;
+                    break;
+                case 82: // r key
+                    alert("Rotate object");
+                    flagR = true;
+                    break;
+            } 
+        }       
     };
 
     gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
