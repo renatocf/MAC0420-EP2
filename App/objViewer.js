@@ -25,10 +25,6 @@ var rotateMatrix, rotateMatrixLoc;
 // rotation quaternion
 var rquat = [0, 0, 0, 1];
 
-// tranlation matrix responsible for zoom in and zoom out.
-var zoomMatrix;
-var zoomCoords = [0.0, 0.0, 0.0];
-
 // Mouse click coordinates
 var mouseupX, mouseupY;
 var mousedownX, mousedownY;
@@ -203,19 +199,6 @@ window.onload = function init() {
                 break;
             case 3:
                 // Zoom in and zoom out.
-                var d1 = mupcanX - mdowncanX;
-                var d2 = mupcanY - mdowncanY;
-                if ( Math.abs(d1) > Math.abs(d2) )
-                    zoomCoords[2] = zoomCoords[2] + d1;
-                else
-                    zoomCoords[2] = zoomCoords[2] + d2;
-
-                if (zoomCoords[2] > 1)
-                    zoomCoords[2] = 1;
-                else if (zoomCoords[2] < -1)
-                    zoomCoords[2] = -1;
-                //console.log(zoomCoords[2]);
-                break;
         }
     };
 
@@ -254,10 +237,6 @@ var render = function() {
     //modelViewMatrix = mult(modelViewMatrix, rotate(theta[xAxis], [1, 0, 0] ));
     //modelViewMatrix = mult(modelViewMatrix, rotate(theta[yAxis], [0, 1, 0] ));
     //modelViewMatrix = mult(modelViewMatrix, rotate(theta[zAxis], [0, 0, 1] ));
-
-    zoomMatrix = translate( zoomCoords );
-    modelViewMatrix = mult(modelViewMatrix, zoomMatrix);
-
     gl.uniformMatrix4fv( modelViewMatrixLoc, false, flatten(modelViewMatrix) );
 
     // create persperctive projection matrix
