@@ -50,7 +50,6 @@ function inverseQuaternion(quat) {
 	result[3] = -quat[3];
 
 	return result;
-
 }
 
 
