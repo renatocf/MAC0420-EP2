@@ -4,6 +4,7 @@
     [X] Think about rotation with quaternions.
     [X] Get mouse events and coordinates of click and release.
     [X] Rotation of the camera (not working well).
+    [X] Get keyboard events.
     [ ]	Try to fix rotation with quaternions for x-axis. 
     [ ] Try to fix rotation of the camera.   
 
