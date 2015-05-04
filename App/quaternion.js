@@ -44,10 +44,10 @@ function  createRotMatrixFromQuat(quat) {
 function inverseQuaternion(quat) {
 	var result = [];
 
-	result[0] = quat[0];
+	result[3] = quat[3];
+	result[0] = -quat[0];
 	result[1] = -quat[1];
 	result[2] = -quat[2];
-	result[3] = -quat[3];
 
 	return result;
 }
