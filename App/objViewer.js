@@ -25,6 +25,10 @@ var rotateMatrix, rotateMatrixLoc;
 // rotation quaternion
 var rquat = [0, 0, 0, 1];
 
+// tranlation matrix responsible for zoom in and zoom out.
+var zoomMatrix;
+var zoomCoords = [0.0, 0.0, 0.0];
+
 // Mouse click coordinates
 var mouseupX, mouseupY;
 var mousedownX, mousedownY;
@@ -168,44 +172,36 @@ window.onload = function init() {
         mupcanY = rst[1];
         switch (evt.which) {
             case 1:
-                // Não acho que seja o modo certo de fazer isso!!
-                // Não está parecendo certo isso!!
-                // Não está funcionando muito bem!!
-                console.log("MOUSE!!");
-                if (objects.length != 0) {
-                    var p1 = [0.0, 0.0, 0.0]; // center of de canonical volume
-                    var p0 = [mupcanX, mupcanY, 1.0];
-                    var p2 = [mdowncanX, mdowncanY, 1.0];
-                    
-                    // The axis of the rotation is the normal of the
-                    // triagle formed by the center of the canonical volume
-                    // and the points where occurs the mouse click events.
-                    var normal = normalOfTriagle(p0, p1, p2);
-
-                    // O angulo de rotação é gerado a partir da proporção
-                    // do deslocamento do mouse: 360 graus - move o mouse
-                    // de um lado ao outro da tela ou se cima para baixo.
-                    var d1 = mupcanX - mdowncanX;
-                    var d2 = mupcanY - mdowncanY;
-                    
-                    if ( Math.abs(d1) > Math.abs(d2) )
-                        angle = (360.0 * d1) / 2.0;
-                    else
-                        angle = (360.0 * d2) / 2.0;
-
-                    console.log(angle);
-
-                    if ( !isNaN(normal[0]) ) {
-                        var axis = normal;
-                        console.log(axis);
-                        var lquat = createRotationQuaternion(axis, angle);
-                        rquat = quaternionMulti(lquat, rquat);
-                    }                    
+                // Rotatcionar a camera!
+                // Não sei como ainda!
+                // Rotaciona entorno do eixo y 45 todo vez que 
+                // ocorrer um evento de mouse up.
+                if (objects.length != 0)
+                {
+                    var axis = [0, 1, 0];
+                    axis = normalize(axis);
+                    var lquat = createRotationQuaternion(axis, 45);
+                    rquat = quaternionMulti(lquat, rquat);
                 }
                 break;
             case 3:
                 // Zoom in and zoom out.
-                break;
+                var d1 = mupcanX - mdowncanX;
+                var d2 = mupcanY - mdowncanY;
+                if ( Math.abs(d1) > Math.abs(d2) )
+                    zoomCoords[2] = zoomCoords[2] + d1;
+                else
+                    zoomCoords[2] = zoomCoords[2] + d2;
+
+                // Valores maiores que 1.5 deforma a imagem, o objeto
+                // sai do campo de visão.
+                if (zoomCoords[2] > 1.5)
+                    zoomCoords[2] = 1.5;
+                // Valores menores que -7, deixam a imagem muito pequena.
+                else if (zoomCoords[2] < -7)
+                    zoomCoords[2] = -7;
+                console.log(zoomCoords[2]);
+                break;                          
         }
     };
 
@@ -313,9 +309,10 @@ var render = function() {
     // create model view matrix
     modelViewMatrix = lookAt(eye, at, up);
     modelViewMatrix = mult(modelViewMatrix, scaleM(vec3(ratio, ratio, ratio)));
-    //modelViewMatrix = mult(modelViewMatrix, rotate(theta[xAxis], [1, 0, 0] ));
-    //modelViewMatrix = mult(modelViewMatrix, rotate(theta[yAxis], [0, 1, 0] ));
-    //modelViewMatrix = mult(modelViewMatrix, rotate(theta[zAxis], [0, 0, 1] ));
+
+    zoomMatrix = translate( zoomCoords );
+    modelViewMatrix = mult(modelViewMatrix, zoomMatrix);
+
     gl.uniformMatrix4fv( modelViewMatrixLoc, false, flatten(modelViewMatrix) );
 
     // create persperctive projection matrix
