@@ -3,10 +3,10 @@
     [X] Perspective projection.
     [X] Think about rotation with quaternions.
     [X] Get mouse events and coordinates of click and release.
-    [X] Rotation of the camera (not working well).
     [X] Get keyboard events.
+    [X] Camera zoom in and out.
     [ ]	Try to fix rotation with quaternions for x-axis. 
-    [ ] Try to fix rotation of the camera.   
+    [ ] Rotation of the camera.   
 
 [Renato]
     [X] Refactor to use object oriented style.
