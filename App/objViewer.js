@@ -197,6 +197,14 @@ window.onload = function init() {
                 }
                 else {
                     // Nao tem objeto selecionado, entao rotaciona a camera.
+                    // rotacionar 45 graus toda vez que soltar o mouse.
+                    if (objects.length != 0)
+                    {
+                        var axis = [0, 1, 0];
+                        axis = normalize(axis);
+                        var lquat = createRotationQuaternion(axis, 45);
+                        rquat = quaternionMulti(lquat, rquat);
+                    }
                 }
                 break;
             case 3:
