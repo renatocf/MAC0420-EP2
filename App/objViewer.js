@@ -139,12 +139,12 @@ window.onload = function init() {
                     // Selecionar o objeto mais proximo da camera.
                     flagSelect = true;
                     selectObj = 0; // indice do objeto selecionado.
-                } 
+                }
                 break;
         }
 
     };
-    
+
     canvas.onmouseup = function (evt) {
         mouseupX = evt.clientX;
         mouseupY = evt.clientY;
@@ -160,32 +160,32 @@ window.onload = function init() {
 
                     // Foi escolhida a opcao de translacao
                     if (flagT) {
-                        if (flagX) { 
+                        if (flagX) {
                             if (mupcanX > mdowncanX)
                                 objects[selectObj].centroid[0] -= dist;
                             else
-                                objects[selectObj].centroid[0] += dist;                            
-                            
+                                objects[selectObj].centroid[0] += dist;
+
                             flagT = false;
                             flagX = false;
                         }
-                        else if (flagY) { 
+                        else if (flagY) {
                             if (mupcanY > mdowncanY)
                                 objects[selectObj].centroid[1] -= dist;
                             else
                                 objects[selectObj].centroid[1] += dist;
-                            
+
                             flagT = false;
                             flagY = false;
                         }
-                        else if (flagZ) { 
+                        else if (flagZ) {
                             if (mupcanX > mdowncanX || mupcanY > mdowncanY) {
                                 objects[selectObj].centroid[2] += dist;
                                 console.log("Afasta");
                             }
                             else
                                 objects[selectObj].centroid[2] -= dist;
-                            
+
                             // Keep objects visible.
                             if (objects[selectObj].centroid[2] > 2.0)
                                  objects[selectObj].centroid[2] = 2.0;
@@ -195,7 +195,7 @@ window.onload = function init() {
                             flagT = false;
                             flagZ= false;
                         }
-                    }                    
+                    }
                 }
                 else {
                     // Nao tem objeto selecionado, entao rotaciona a camera.
@@ -206,19 +206,19 @@ window.onload = function init() {
                 var dx = mdowncanX - mupcanX;
                 var dy = mdowncanY - mupcanY;
                 var dist = Math.sqrt(dx*dx + dy*dy);
-                
+
                 if (mupcanX > mdowncanX || mupcanY > mdowncanY)
                     zoomCoords[2] = zoomCoords[2] + dist;
                 else
                     zoomCoords[2] = zoomCoords[2] - dist;
-                
+
                 // Keep objects visible.
                 if (zoomCoords[2] > 1.5)
                     zoomCoords[2] = 1.5;
                 else if (zoomCoords[2] < -7)
                     zoomCoords[2] = -7;
-                
-                break;                            
+
+                break;
         }
     };
 
@@ -229,27 +229,27 @@ window.onload = function init() {
                     alert("Delect object");
                     // remove o objeto de objects.
                     objects.splice(selectObj, selectObj+1);
-                    flagSelect = false;                
+                    flagSelect = false;
                     break;
                 case 88: // x key
                     if (!flagT && !flagS && !flagR) {
                         console.log("Delect object");
                         // remove o objeto de objects.
                         objects.splice(selectObj, selectObj+1);
-                        flagSelect = false;   
+                        flagSelect = false;
                     }
                     console.log("x-axis");
                     flagX = true;
                     break;
                 case 89: // y key
                     console.log("y-axis");
-                    flagY = true;       
+                    flagY = true;
                     break;
                 case 90: // z key
                     console.log("z-axis");
                     flagZ = true;
                     break;
-                case 84: // t key                
+                case 84: // t key
                     console.log("translate object");
                     flagT = true;
                     break;
@@ -262,7 +262,7 @@ window.onload = function init() {
                     flagR = true;
                     break;
             }
-        }       
+        }
     };
 
     gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
@@ -270,7 +270,7 @@ window.onload = function init() {
     gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
        flatten(diffuseProduct) );
     gl.uniform4fv(gl.getUniformLocation(program, "specularProduct"),
-       flatten(specularProduct) );  
+       flatten(specularProduct) );
     gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"),
        flatten(lightPosition) );
 
@@ -377,6 +377,6 @@ function viewportToCanonicalCoordinates(x, y) {
     // O ponto (0, 0) no canvas e o conto superior esquerdo.
     can_y = 1 - (y * (2/vp_top));
 
-    return [can_x, can_y];  
+    return [can_x, can_y];
 }
 

@@ -10,48 +10,44 @@ function createRotationQuaternion(axis, angle) {
 }
 
 function quaternionMulti(q1, q2) {
-	var result = [];
-	result[3] = (q1[3]*q2[3] - q1[0]*q2[0] - q1[1]*q2[1] - q1[2]*q2[2]);
-	result[0] = (q1[3]*q2[0] + q1[0]*q2[3] + q1[1]*q2[2] - q1[2]*q2[1]);
-	result[1] = (q1[3]*q2[1] - q1[0]*q2[2] + q1[1]*q2[3] + q1[2]*q2[0]);
-	result[2] = (q1[3]*q2[2] + q1[0]*q2[1] - q1[1]*q2[0] + q1[2]*q2[3]);
+    var result = [];
+    result[3] = (q1[3]*q2[3] - q1[0]*q2[0] - q1[1]*q2[1] - q1[2]*q2[2]);
+    result[0] = (q1[3]*q2[0] + q1[0]*q2[3] + q1[1]*q2[2] - q1[2]*q2[1]);
+    result[1] = (q1[3]*q2[1] - q1[0]*q2[2] + q1[1]*q2[3] + q1[2]*q2[0]);
+    result[2] = (q1[3]*q2[2] + q1[0]*q2[1] - q1[1]*q2[0] + q1[2]*q2[3]);
 
-	return result;
+    return result;
 }
 
 
 function  createRotMatrixFromQuat(quat) {
-	var rmatrix = mat4();
-	
-	rmatrix[0][0] = 1 - 2*quat[1]*quat[1] - 2*quat[2]*quat[2];
-	rmatrix[0][1] = 2*quat[0]*quat[1] + 2*quat[3]*quat[2];
-	rmatrix[0][2] = 2*quat[0]*quat[2] - 2*quat[3]*quat[1];
-	rmatrix[0][3] = 0;
-	rmatrix[1][0] = 2*quat[0]*quat[1] - 2*quat[3]*quat[2];
-	rmatrix[1][1] = 1 - 2*quat[0]*quat[0] - 2*quat[2]*quat[2];
-	rmatrix[1][2] = 2*quat[1]*quat[2] + 2*quat[3]*quat[2];
-	rmatrix[1][3] = 0;
-	rmatrix[2][0] = 2*quat[0]*quat[2] + 2*quat[3]*quat[1];
-	rmatrix[2][1] = 2*quat[1]*quat[2] - 2*quat[3]*quat[0];
-	rmatrix[2][2] = 1 - 2*quat[0]*quat[0] - 2*quat[1]*quat[1];
-	rmatrix[2][3] = 0;
-	rmatrix[3] 	  = vec4(0, 0, 0, 1);
+    var rmatrix = mat4();
 
-	return rmatrix;
+    rmatrix[0][0] = 1 - 2*quat[1]*quat[1] - 2*quat[2]*quat[2];
+    rmatrix[0][1] = 2*quat[0]*quat[1] + 2*quat[3]*quat[2];
+    rmatrix[0][2] = 2*quat[0]*quat[2] - 2*quat[3]*quat[1];
+    rmatrix[0][3] = 0;
+    rmatrix[1][0] = 2*quat[0]*quat[1] - 2*quat[3]*quat[2];
+    rmatrix[1][1] = 1 - 2*quat[0]*quat[0] - 2*quat[2]*quat[2];
+    rmatrix[1][2] = 2*quat[1]*quat[2] + 2*quat[3]*quat[2];
+    rmatrix[1][3] = 0;
+    rmatrix[2][0] = 2*quat[0]*quat[2] + 2*quat[3]*quat[1];
+    rmatrix[2][1] = 2*quat[1]*quat[2] - 2*quat[3]*quat[0];
+    rmatrix[2][2] = 1 - 2*quat[0]*quat[0] - 2*quat[1]*quat[1];
+    rmatrix[2][3] = 0;
+    rmatrix[3]    = vec4(0, 0, 0, 1);
+
+    return rmatrix;
 
 }
 
 function inverseQuaternion(quat) {
-	var result = [];
+    var result = [];
 
-	result[3] = quat[3];
-	result[0] = -quat[0];
-	result[1] = -quat[1];
-	result[2] = -quat[2];
+    result[3] = quat[3];
+    result[0] = -quat[0];
+    result[1] = -quat[1];
+    result[2] = -quat[2];
 
-	return result;
+    return result;
 }
-
-
-          
-    
