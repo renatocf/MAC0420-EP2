@@ -127,7 +127,7 @@ window.onload = function init() {
         }
     };
 
-    document.onmousedown = function (evt) {
+    canvas.onmousedown = function (evt) {
         mousedownX = evt.clientX;
         mousedownY = evt.clientY;
         var rst = viewportToCanonicalCoordinates(mousedownX, mousedownY);
@@ -145,7 +145,7 @@ window.onload = function init() {
 
     };
     
-    document.onmouseup = function (evt) {
+    canvas.onmouseup = function (evt) {
         mouseupX = evt.clientX;
         mouseupY = evt.clientY;
         var rst = viewportToCanonicalCoordinates(mouseupX, mouseupY);
@@ -222,7 +222,7 @@ window.onload = function init() {
         }
     };
 
-    document.onkeyup = function (evt) {
+    canvas.onkeyup = function (evt) {
         if (flagSelect) {  // if there is a selected object.
             switch (evt.keyCode) {
                 case 46: // delete key
@@ -270,7 +270,7 @@ window.onload = function init() {
     gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
        flatten(diffuseProduct) );
     gl.uniform4fv(gl.getUniformLocation(program, "specularProduct"),
-       flatten(specularProduct) );	
+       flatten(specularProduct) );  
     gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"),
        flatten(lightPosition) );
 
