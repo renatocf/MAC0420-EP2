@@ -252,7 +252,8 @@ window.onload = function init() {
                 }                
                 else {
                     // Nao tem objeto selecionado, entao rotaciona a camera.
-                   break;
+                }
+                break;
             case 3:
                 // Zoom in and zoom out.
                 var dx = mdowncanX - mupcanX;
