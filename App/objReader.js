@@ -1,6 +1,6 @@
 function loadObjFile(data) {
 
-	// TO DO:   (i) Parse OBJ file and extract vertices and normal vectors
+    // TO DO:   (i) Parse OBJ file and extract vertices and normal vectors
 
     var lines = data.split("\n");
 
@@ -82,7 +82,7 @@ function loadObjFile(data) {
         (dimension.maxZ+dimension.minZ)/2
     );
 
-	// TO DO:  (ii) If normal vectors are not in the file, you will need to calculate them
+    // TO DO:  (ii) If normal vectors are not in the file, you will need to calculate them
 
     // Normals for flat shading
     for (var i = 0, face; face = faces[i]; i++) {
@@ -135,7 +135,7 @@ function loadObjFile(data) {
         smoothNormals.push(normalize(vertices[parseInt(face[2][0])-1].smoothNormal));
     }
 
-	// TO DO: (iii) Return vertices and normals and any associated information you might find useful
+    // TO DO: (iii) Return vertices and normals and any associated information you might find useful
     var newObject = {
         centroid:      centroid,
         pointsArray:   pointsArray,
