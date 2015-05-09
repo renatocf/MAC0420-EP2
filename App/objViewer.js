@@ -19,11 +19,8 @@ var modelViewMatrixLoc, projectionMatrixLoc;
 // translation and scale matrices
 var transMatrix, scaleMatrix;
 var transMatrixLoc, scaleMatrixLoc;
-
-// rotate matrix
+// rotate matrix 
 var rotateMatrix, rotateMatrixLoc;
-// rotation quaternion
-var rquat = [0, 0, 0, 1];
 
 // tranlation matrix responsible for zoom in and zoom out.
 var zoomMatrix;
@@ -43,6 +40,10 @@ var flagS = false;
 var flagX = false;
 var flagY = false;
 var flagZ = false;
+
+var xAxis = 0;
+var yAxis = 1;
+var zAxis = 2;
 
 //var ctm;
 var ambientColor, diffuseColor, specularColor;
@@ -156,10 +157,11 @@ window.onload = function init() {
                 if (flagSelect) { // estamos manipulando um objeto.
                     var dx = mdowncanX - mupcanX;
                     var dy = mdowncanY - mupcanY;
-                    var dist = Math.sqrt(dx*dx + dy*dy);
+                    var dist = Math.sqrt(dx*dx + dy*dy);                    
 
                     // Foi escolhida a opcao de translacao
                     if (flagT) {
+                        dist = dist * objects[selectObj].radius;
                         if (flagX) {
                             if (mupcanX > mdowncanX)
                                 objects[selectObj].centroid[0] -= dist;
@@ -180,33 +182,77 @@ window.onload = function init() {
                         }
                         else if (flagZ) {
                             if (mupcanX > mdowncanX || mupcanY > mdowncanY)
-                                objects[selectObj].centroid[2] += dist;
-                            else
                                 objects[selectObj].centroid[2] -= dist;
+                            else
+                                objects[selectObj].centroid[2] += dist;
 
                             // Keep objects visible.
-                            if (objects[selectObj].centroid[2] > 2.0)
-                                 objects[selectObj].centroid[2] = 2.0;
-                            else if (objects[selectObj].centroid[2] < -7)
-                                objects[selectObj].centroid[2] = -7;
+                            if (objects[selectObj].centroid[2] > (2.0 * objects[selectObj].radius))
+                                objects[selectObj].centroid[2] = 2.0 * objects[selectObj].radius;
+                            else if (objects[selectObj].centroid[2] < (-7.0 * objects[selectObj].radius))
+                                objects[selectObj].centroid[2] = -7.0 * objects[selectObj].radius;
 
                             flagT = false;
                             flagZ= false;
                         }
                     }
-                }
+                    // Foi escolhida a opcao de escala
+                    else if (flagS) {
+                        if (flagX) { 
+                            if (mupcanX > mdowncanX)
+                                objects[selectObj].scaleValues[0] += dist;
+                            else
+                                objects[selectObj].scaleValues[0] -= dist;                            
+                            
+                            flagS = false;
+                            flagX = false;
+                        }
+                        else if (flagY) { 
+                            if (mupcanY > mdowncanY)
+                                objects[selectObj].scaleValues[1] += dist;
+                            else
+                                objects[selectObj].scaleValues[1] -= dist;
+                            
+                            flagS = false;
+                            flagY = false;
+                        }
+                        else if (flagZ) { 
+                            if (mupcanX > mdowncanX || mupcanY > mdowncanY) {
+                                objects[selectObj].scaleValues[2] += dist;                                
+                            }
+                            else
+                                objects[selectObj].scaleValues[2] -= dist;                       
+
+                            flagS = false;
+                            flagZ = false;
+                        }
+                    }
+                    // Foi escolhida a opcao de rotacao.
+                    else if (flagR) {
+                        dist = dist * 20;
+                        if (flagX) {
+                            objects[selectObj].rotationAngles[0] += dist;
+
+                            flagR = false;
+                            flagX = false;
+                        }
+                        else if (flagY) {
+                            objects[selectObj].rotationAngles[1] += dist;
+
+                            flagR = false;
+                            flagY = false;
+                        }
+                        if (flagZ) {
+                            objects[selectObj].rotationAngles[2] += dist;
+
+                            flagR = false;
+                            flagZ = false;                            
+                        }
+                    }
+                }                
                 else {
                     // Nao tem objeto selecionado, entao rotaciona a camera.
-                    // rotacionar 45 graus toda vez que soltar o mouse.
-                    if (objects.length != 0)
-                    {
-                        var axis = [0, 1, 0];
-                        axis = normalize(axis);
-                        var lquat = createRotationQuaternion(axis, 45);
-                        rquat = quaternionMulti(lquat, rquat);
-                    }
-                }
-                break;
+                   break;
             case 3:
                 // Zoom in and zoom out.
                 var dx = mdowncanX - mupcanX;
@@ -229,6 +275,7 @@ window.onload = function init() {
     };
 
     document.onkeyup = function (evt) {
+        //console.log(evt.keyCode);
         if (flagSelect) {  // if there is a selected object.
             switch (evt.keyCode) {
                 case 46: // delete key
@@ -236,6 +283,7 @@ window.onload = function init() {
                     // remove o objeto de objects.
                     objects.splice(selectObj, selectObj+1);
                     flagSelect = false;
+                    selectObj = -1;
                     break;
                 case 88: // x key
                     if (!flagT && !flagS && !flagR) {
@@ -243,6 +291,7 @@ window.onload = function init() {
                         // remove o objeto de objects.
                         objects.splice(selectObj, selectObj+1);
                         flagSelect = false;
+                        selectObj = -1;
                     }
                     console.log("x-axis");
                     flagX = true;
@@ -267,6 +316,15 @@ window.onload = function init() {
                     console.log("Rotate object");
                     flagR = true;
                     break;
+
+                // teste
+                case 27: // tecla ESC, des-selecionda o objeto
+                    flagSelect = false;
+                    selectObj = -1;
+                case 79: // tecla 'o' ou 'O' muda o objeto selecionado para o proximo da lista.
+                    selectObj = selectObj + 1;
+                    if (selectObj > objects.length)
+                        selectObj = 0;
             }
         }
     };
@@ -312,8 +370,8 @@ var render = function() {
     gl.uniformMatrix4fv( projectionMatrixLoc, false, flatten(projectionMatrix) );
 
     // create rotation matrix from quaternion
-    rotateMatrix = createRotMatrixFromQuat( rquat );
-    gl.uniformMatrix4fv( rotateMatrixLoc, false, flatten(rotateMatrix) );
+    //rotateMatrix = createRotMatrixFromQuat( rquat );
+    //gl.uniformMatrix4fv( rotateMatrixLoc, false, flatten(rotateMatrix) );
 
     for (i = 0; i < objects.length; i++)
     {
@@ -322,26 +380,36 @@ var render = function() {
 
         createBuffers(object);
 
-        if (flagSelect) {
-            if (selectObj == i) {
+        if (selectObj == i) {
                 // muda a cor do objeto selecionado para um tom de azul.
-                var materialDiffuse_obj = vec4( 0.2, 0.3, 0.6, 1.0 );
-                var diffuseProduct_obj = mult(lightDiffuse, materialDiffuse_obj);
-                gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
+                if (flagSelect) {
+                    var materialDiffuse_obj = vec4( 0.2, 0.3, 0.6, 1.0 );
+                    var diffuseProduct_obj = mult(lightDiffuse, materialDiffuse_obj);
+                    gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
                                 flatten(diffuseProduct_obj) );
+                }
             }
-            else 
-                gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
-                            flatten(diffuseProduct) );
-        }
+        else 
+            gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
+                flatten(diffuseProduct) );
+        
 
-        // create translation matrix to set object in the origin
+        // create translation matrix to set object in the origin and capture
+        // the manipulation of the objects.
         transMatrix = translate(negate(object.centroid));
         gl.uniformMatrix4fv( transMatrixLoc, false, flatten(transMatrix) );
 
-        // create scale matrix to fit object inside the canvas
+        // create scale matrix to fit object inside the canvas and capture the
+        // manipulation of the objects.
         scaleMatrix = scaleM(vec3(1/radius, 1/radius, 1/radius));
+        scaleMatrix = mult(scaleMatrix, scaleM(object.scaleValues));
         gl.uniformMatrix4fv( scaleMatrixLoc, false, flatten(scaleMatrix) );
+
+        // capture the rotation of the objects.
+        rotateMatrix = rotate(object.rotationAngles[xAxis], [1, 0, 0] );
+        rotateMatrix = mult(rotateMatrix, rotate(object.rotationAngles[yAxis], [0, 1, 0] ));
+        rotateMatrix = mult(rotateMatrix, rotate(object.rotationAngles[zAxis], [0, 0, 1] ));
+        gl.uniformMatrix4fv( rotateMatrixLoc, false, flatten(rotateMatrix) );
 
         // draw triangles
         gl.drawArrays( gl.TRIANGLES, 0, object.pointsArray.length );
@@ -381,6 +449,13 @@ function loadObject(data) {
           case smoothShading: return this.smoothNormals;
         }
     }
+
+    // Insere os valores de escala do objeto. Inicializados com 1, pois
+    // o objeto ainda não foi manipulado.
+    newObject.scaleValues = [1.0, 1.0, 1.0];
+    // Insere os angulos de rotacao do objeto. Inicializados com 0, pois
+    // o objeto ainda não foi manipulado.
+    newObject.rotationAngles = [0, 0, 0];
 
     objects.push(newObject);
     console.log(newObject);
