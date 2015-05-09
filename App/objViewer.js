@@ -179,7 +179,7 @@ window.onload = function init() {
                             flagY = false;
                         }
                         else if (flagZ) {
-                            if (mupcanX > mdowncanX || mupcanY > mdowncanY) {
+                            if (mupcanX > mdowncanX || mupcanY > mdowncanY)
                                 objects[selectObj].centroid[2] += dist;
                             else
                                 objects[selectObj].centroid[2] -= dist;
@@ -228,7 +228,7 @@ window.onload = function init() {
         }
     };
 
-    canvas.onkeyup = function (evt) {
+    document.onkeyup = function (evt) {
         if (flagSelect) {  // if there is a selected object.
             switch (evt.keyCode) {
                 case 46: // delete key
