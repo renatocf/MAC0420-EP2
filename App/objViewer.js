@@ -35,25 +35,17 @@ var mousedownX, mousedownY;
 var mupcanX, mupcanY;
 var mdowncanX, mdowncanY;
 
-var selectObj = false;
+var selectObj; // index of the selected object
+var flagSelect = false;
 var flagT = false;
 var flagR = false;
 var flagS = false;
+var flagX = false;
+var flagY = false;
+var flagZ = false;
 
 //var ctm;
 var ambientColor, diffuseColor, specularColor;
-
-var xAxis = 0;
-var yAxis = 1;
-var zAxis = 2;
-var axis = 1;
-var theta =[0, 0, 0];
-
-//var centroid = [];
-//var dimension = {};
-//var dmax = [];
-
-var thetaLoc;
 
 // camera definitions
 var eye = vec3(1.0, 0.0, 0.0);
@@ -102,8 +94,6 @@ window.onload = function init() {
     program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
 
-    thetaLoc = gl.getUniformLocation(program, "theta");
-
     // create light components
     ambientProduct = mult(lightAmbient, materialAmbient);
     diffuseProduct = mult(lightDiffuse, materialDiffuse);
@@ -119,15 +109,6 @@ window.onload = function init() {
 
     // create rotation matrix
     rotateMatrixLoc = gl.getUniformLocation(program, "rotateMatrix");
-
-    document.getElementById("ButtonX").onclick = function(){axis = xAxis;};
-    document.getElementById("ButtonY").onclick = function(){axis = yAxis;};
-    document.getElementById("ButtonZ").onclick = function(){axis = zAxis;};
-    document.getElementById("ButtonT").onclick = function(){flag = !flag;};
-
-    document.getElementById("ButtonF").onclick = function(){shading = flatShading;};
-    document.getElementById("ButtonS").onclick = function(){shading = smoothShading;};
-    document.getElementById("ButtonN").onclick = function(){shading = fileShading;};
 
     document.getElementById('files').onchange = function (evt) {
 
@@ -156,8 +137,8 @@ window.onload = function init() {
             case 1:
                 if (evt.shiftKey) {
                     // Selecionar o objeto mais proximo da camera.
-                    // Não sei como!
-                    selectObj = true;
+                    flagSelect = true;
+                    selectObj = 0; // indice do objeto selecionado.
                 } 
                 break;
         }
@@ -172,108 +153,115 @@ window.onload = function init() {
         mupcanY = rst[1];
         switch (evt.which) {
             case 1:
-                // Rotatcionar a camera!
-                // Não sei como ainda!
-                // Rotaciona entorno do eixo y 45 todo vez que 
-                // ocorrer um evento de mouse up.
-                if (objects.length != 0)
-                {
-                    var axis = [0, 1, 0];
-                    axis = normalize(axis);
-                    var lquat = createRotationQuaternion(axis, 45);
-                    rquat = quaternionMulti(lquat, rquat);
+                if (flagSelect) { // estamos manipulando um objeto.
+                    var dx = mdowncanX - mupcanX;
+                    var dy = mdowncanY - mupcanY;
+                    var dist = Math.sqrt(dx*dx + dy*dy);
+
+                    // Foi escolhida a opcao de translacao
+                    if (flagT) {
+                        if (flagX) { 
+                            if (mupcanX > mdowncanX)
+                                objects[selectObj].centroid[0] -= dist;
+                            else
+                                objects[selectObj].centroid[0] += dist;                            
+                            
+                            flagT = false;
+                            flagX = false;
+                        }
+                        else if (flagY) { 
+                            if (mupcanY > mdowncanY)
+                                objects[selectObj].centroid[1] -= dist;
+                            else
+                                objects[selectObj].centroid[1] += dist;
+                            
+                            flagT = false;
+                            flagY = false;
+                        }
+                        else if (flagZ) { 
+                            if (mupcanX > mdowncanX || mupcanY > mdowncanY) {
+                                objects[selectObj].centroid[2] += dist;
+                                console.log("Afasta");
+                            }
+                            else
+                                objects[selectObj].centroid[2] -= dist;
+                            
+                            // Keep objects visible.
+                            if (objects[selectObj].centroid[2] > 2.0)
+                                 objects[selectObj].centroid[2] = 2.0;
+                            else if (objects[selectObj].centroid[2] < -7)
+                                objects[selectObj].centroid[2] = -7;
+
+                            flagT = false;
+                            flagZ= false;
+                        }
+                    }                    
+                }
+                else {
+                    // Nao tem objeto selecionado, entao rotaciona a camera.
                 }
                 break;
             case 3:
                 // Zoom in and zoom out.
-                var d1 = mupcanX - mdowncanX;
-                var d2 = mupcanY - mdowncanY;
-                if ( Math.abs(d1) > Math.abs(d2) )
-                    zoomCoords[2] = zoomCoords[2] + d1;
+                var dx = mdowncanX - mupcanX;
+                var dy = mdowncanY - mupcanY;
+                var dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (mupcanX > mdowncanX || mupcanY > mdowncanY)
+                    zoomCoords[2] = zoomCoords[2] + dist;
                 else
-                    zoomCoords[2] = zoomCoords[2] + d2;
-
-                // Valores maiores que 1.5 deforma a imagem, o objeto
-                // sai do campo de visão.
+                    zoomCoords[2] = zoomCoords[2] - dist;
+                
+                // Keep objects visible.
                 if (zoomCoords[2] > 1.5)
                     zoomCoords[2] = 1.5;
-                // Valores menores que -7, deixam a imagem muito pequena.
                 else if (zoomCoords[2] < -7)
                     zoomCoords[2] = -7;
-                console.log(zoomCoords[2]);
-                break;                          
+                
+                break;                            
         }
     };
 
     document.onkeyup = function (evt) {
-        console.log(evt.keyCode);
-        if (selectObj) {  // if there is a selected object.
+        if (flagSelect) {  // if there is a selected object.
             switch (evt.keyCode) {
                 case 46: // delete key
                     alert("Delect object");
                     // remove o objeto de objects.
-                    selectObj = false;                
+                    objects.splice(selectObj, selectObj+1);
+                    flagSelect = false;                
                     break;
                 case 88: // x key
-                    if (flagT) {
-                        alert("translate on x-axis");
-                        flagT = false;
+                    if (!flagT && !flagS && !flagR) {
+                        console.log("Delect object");
+                        // remove o objeto de objects.
+                        objects.splice(selectObj, selectObj+1);
+                        flagSelect = false;   
                     }
-                    else if (flagR) {
-                        alert("rotate on x-axis");
-                        flagR = false;
-                    }
-                    else if (flagS) {
-                        alert("scale on x-axis");
-                        flagS = false;
-                    }
-                    else { 
-                        alert("Delect object");
-                    // remove o objeto de objects.
-                    selectObj = false; 
-                    }               
+                    console.log("x-axis");
+                    flagX = true;
                     break;
                 case 89: // y key
-                    if (flagT) {
-                        alert("translate on y-axis");
-                        flagT = false;
-                    }
-                    else if (flagR) {
-                        alert("rotate on y-axis");
-                        flagR = false;
-                    }
-                    else if (flagS) {
-                        alert("scale on y-axis");
-                        flagS = false; 
-                    } 
+                    console.log("y-axis");
+                    flagY = true;       
                     break;
                 case 90: // z key
-                    if (flagT) {
-                        alert("translate on z-axis");
-                        flagT = false;
-                    }
-                    else if (flagR) {
-                        alert("rotate on z-axis");
-                        flagR = false;
-                    }
-                    else if (flagS) {
-                        alert("scale on z-axis");
-                        flagS = false;
-                    }
+                    console.log("z-axis");
+                    flagZ = true;
                     break;
                 case 84: // t key                
-                    alert("translate object");
+                    console.log("translate object");
                     flagT = true;
                     break;
                 case 83: // s key
-                    alert("Scale object");
+                    console.log("Scale object");
                     flagS = true;
                     break;
                 case 82: // r key
-                    alert("Rotate object");
+                    console.log("Rotate object");
                     flagR = true;
                     break;
-            } 
+            }
         }       
     };
 
@@ -298,8 +286,6 @@ var render = function() {
 
     var wrapper = document.getElementById( "gl-wrapper" );
     var ratio = wrapper.clientHeight/wrapper.clientWidth;
-
-    if (flag) theta[axis] += 2.0;
 
     // create eye
     eye = vec3(cradius * Math.sin(ctheta) * Math.cos(cphi),
@@ -394,12 +380,3 @@ function viewportToCanonicalCoordinates(x, y) {
     return [can_x, can_y];  
 }
 
-function normalOfTriagle(p0, p1, p2)
-{
-    var a = subtract(p1, p0);
-    var b = subtract(p2, p1);    
-    var normal = vec4(cross(a, b), 0);
-    normal = normalize(normal);
-
-    return normal;
-}
