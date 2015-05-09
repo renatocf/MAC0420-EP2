@@ -179,10 +179,8 @@ window.onload = function init() {
                             flagY = false;
                         }
                         else if (flagZ) { 
-                            if (mupcanX > mdowncanX || mupcanY > mdowncanY) {
+                            if (mupcanX > mdowncanX || mupcanY > mdowncanY)
                                 objects[selectObj].centroid[2] += dist;
-                                console.log("Afasta");
-                            }
                             else
                                 objects[selectObj].centroid[2] -= dist;
                             
@@ -226,7 +224,7 @@ window.onload = function init() {
         if (flagSelect) {  // if there is a selected object.
             switch (evt.keyCode) {
                 case 46: // delete key
-                    alert("Delect object");
+                    console.log("Delect object");
                     // remove o objeto de objects.
                     objects.splice(selectObj, selectObj+1);
                     flagSelect = false;                
@@ -315,6 +313,19 @@ var render = function() {
         var radius = object.radius;
 
         createBuffers(object);
+
+        if (flagSelect) {
+            if (selectObj == i) {
+                // muda a cor do objeto selecionado para um tom de azul.
+                var materialDiffuse_obj = vec4( 0.2, 0.3, 0.6, 1.0 );
+                var diffuseProduct_obj = mult(lightDiffuse, materialDiffuse_obj);
+                gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
+                                flatten(diffuseProduct_obj) );
+            }
+            else 
+                gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
+                            flatten(diffuseProduct) );
+        }
 
         // create translation matrix to set object in the origin
         transMatrix = translate(negate(object.centroid));
