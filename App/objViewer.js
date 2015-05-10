@@ -403,6 +403,9 @@ var render = function() {
 
         // draw triangles
         gl.drawArrays( gl.TRIANGLES, 0, object.pointsArray.length );
+
+        if (flagSelect && i == selectObj)
+            drawAxes(object);
     }
 
     requestAnimFrame(render);
@@ -464,3 +467,33 @@ function viewportToCanonicalCoordinates(x, y) {
     return [can_x, can_y];
 }
 
+
+function drawAxes(object) {
+    gl.lineWidth(2);
+
+    // As linhas não estão ficando verdes!
+    // Não sei por que!
+    var materialDiffuse_axes = vec4( 0.0, 1.0, 0.0, 1.0 );
+    var diffuseProduct_axes = mult(lightDiffuse, materialDiffuse_axes);
+    gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
+                        flatten(diffuseProduct_axes) );
+
+    var lines = [
+        vec4(object.dimension.maxX*1.2, 0.0, 0.0, 1.0),
+        vec4(0.0, 0.0, 0.0, 1.0),
+        vec4(0.0, object.dimension.maxY*1.3, 0.0, 1.0),
+        vec4(0.0, 0.0, 0.0, 1.0),
+        vec4(0.0, 0.0, object.dimension.maxZ*1.4, 1.0)
+    ];
+    
+    var vBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(lines), gl.STATIC_DRAW );
+
+    var vPosition = gl.getAttribLocation(program, "vPosition");
+    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPosition);
+           
+
+    gl.drawArrays( gl.LINE_STRIP, 0, 5);
+}
