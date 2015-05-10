@@ -6,9 +6,13 @@
     [X] Get keyboard events.
     [X] Camera zoom in and out (with transalation matrices).
     [X] Delete and translate objects (assuming we know which object was selected)
-    [ ] Scale object (assuming we know which object was selected)
-    [ ]	Try to fix rotation with quaternions for x-axis. 
-    [ ] Rotation of the camera.   
+    [X] Scale object (assuming we know which object was selected)
+    [X] Create normal matrix, to fix the normals when the object is changed.
+    [X] Draw xyz-axis when handling the object.
+    [X] ESC: un-select object.
+    [X] Test: 'o': change the select object, to the next object in the list of objects.
+    [ ] Ray casting.
+  
 
 [Renato]
     [X] Refactor to use object oriented style.
