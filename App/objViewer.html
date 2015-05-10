@@ -19,6 +19,9 @@
     
     uniform mat4 modelViewMatrix;
     uniform mat4 projectionMatrix;
+
+    // normal matrix
+    uniform mat4 normalMatrix;
     
     uniform vec4 lightPosition;
 
@@ -43,7 +46,7 @@
         vec3 H = normalize( L + E );
     
         // transform vertex normal into eye coordinates
-        vec3 N = normalize( (modelViewMatrix * vNormal).xyz );
+        vec3 N = normalize( (normalMatrix * vNormal).xyz );
     
         // compute terms in the illumination equation
         vec4 ambient = ambientProduct;
@@ -58,7 +61,7 @@
     	   specular = vec4(0.0, 0.0, 0.0, 1.0);
         } 
     
-        gl_Position = projectionMatrix * modelViewMatrix  * rotateMatrix
+        gl_Position = projectionMatrix * modelViewMatrix  
                        * scaleMatrix * transMatrix * vPosition;
         
         fColor = ambient + diffuse +specular;
@@ -85,6 +88,7 @@
   <script type="text/javascript" src="objViewer.js"></script>
   <script type="text/javascript" src="objReader.js"></script>
   <script type="text/javascript" src="quaternion.js"></script>
+  <script type="text/javascript" src="matrix.js"></script>
 
   <body>
     <div id="gl-wrapper">

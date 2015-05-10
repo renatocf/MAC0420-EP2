@@ -16,11 +16,14 @@ var materialShininess = 100.0;
 var modelViewMatrix, projectionMatrix;
 var modelViewMatrixLoc, projectionMatrixLoc;
 
+// normal matrix
+var normalMatrix, normalMatrixLoc;
+
 // translation and scale matrices
 var transMatrix, scaleMatrix;
 var transMatrixLoc, scaleMatrixLoc;
 // rotate matrix 
-var rotateMatrix, rotateMatrixLoc;
+//var rotateMatrix, rotateMatrixLoc;
 
 // tranlation matrix responsible for zoom in and zoom out.
 var zoomMatrix;
@@ -40,10 +43,6 @@ var flagS = false;
 var flagX = false;
 var flagY = false;
 var flagZ = false;
-
-var xAxis = 0;
-var yAxis = 1;
-var zAxis = 2;
 
 //var ctm;
 var ambientColor, diffuseColor, specularColor;
@@ -104,12 +103,15 @@ window.onload = function init() {
     modelViewMatrixLoc = gl.getUniformLocation(program, "modelViewMatrix");
     projectionMatrixLoc = gl.getUniformLocation(program, "projectionMatrix");
 
+    // create normal matrix
+    normalMatrixLoc = gl.getUniformLocation(program, "normalMatrix");
+
     // create translation and and scale matrices
     transMatrixLoc = gl.getUniformLocation(program, "transMatrix");
     scaleMatrixLoc = gl.getUniformLocation(program, "scaleMatrix");
 
     // create rotation matrix
-    rotateMatrixLoc = gl.getUniformLocation(program, "rotateMatrix");
+    //rotateMatrixLoc = gl.getUniformLocation(program, "rotateMatrix");
 
     document.getElementById('files').onchange = function (evt) {
 
@@ -181,16 +183,20 @@ window.onload = function init() {
                             flagY = false;
                         }
                         else if (flagZ) {
-                            if (mupcanX > mdowncanX || mupcanY > mdowncanY)
+                           if ((mupcanX >= mdowncanX && mupcanY >= mdowncanY) ||
+                                (mupcanX <= mdowncanX && mupcanY >= mdowncanY))
                                 objects[selectObj].centroid[2] -= dist;
                             else
                                 objects[selectObj].centroid[2] += dist;
 
                             // Keep objects visible.
-                            if (objects[selectObj].centroid[2] > (2.0 * objects[selectObj].radius))
-                                objects[selectObj].centroid[2] = 2.0 * objects[selectObj].radius;
-                            else if (objects[selectObj].centroid[2] < (-7.0 * objects[selectObj].radius))
-                                objects[selectObj].centroid[2] = -7.0 * objects[selectObj].radius;
+                            if (objects[selectObj].radius < 1) {
+                                if (objects[selectObj].centroid[2] < -1)
+                                    objects[selectObj].centroid[2] = -1;
+                            }
+                            else
+                                if (objects[selectObj].centroid[2] < -1 * objects[selectObj].radius)
+                                    objects[selectObj].centroid[2] = -1 * objects[selectObj].radius;
 
                             flagT = false;
                             flagZ= false;
@@ -217,9 +223,9 @@ window.onload = function init() {
                             flagY = false;
                         }
                         else if (flagZ) { 
-                            if (mupcanX > mdowncanX || mupcanY > mdowncanY) {
+                            if ((mupcanX >= mdowncanX && mupcanY >= mdowncanY) ||
+                                (mupcanX <= mdowncanX && mupcanY >= mdowncanY))
                                 objects[selectObj].scaleValues[2] += dist;                                
-                            }
                             else
                                 objects[selectObj].scaleValues[2] -= dist;                       
 
@@ -229,25 +235,7 @@ window.onload = function init() {
                     }
                     // Foi escolhida a opcao de rotacao.
                     else if (flagR) {
-                        dist = dist * 20;
-                        if (flagX) {
-                            objects[selectObj].rotationAngles[0] += dist;
-
-                            flagR = false;
-                            flagX = false;
-                        }
-                        else if (flagY) {
-                            objects[selectObj].rotationAngles[1] += dist;
-
-                            flagR = false;
-                            flagY = false;
-                        }
-                        if (flagZ) {
-                            objects[selectObj].rotationAngles[2] += dist;
-
-                            flagR = false;
-                            flagZ = false;                            
-                        }
+                        // Rotacionar o objeto atraves de um trackaball.
                     }
                 }                
                 else {
@@ -317,15 +305,16 @@ window.onload = function init() {
                     console.log("Rotate object");
                     flagR = true;
                     break;
-
-                // teste
                 case 27: // tecla ESC, des-selecionda o objeto
                     flagSelect = false;
                     selectObj = -1;
+                    break;
+                // teste
                 case 79: // tecla 'o' ou 'O' muda o objeto selecionado para o proximo da lista.
                     selectObj = selectObj + 1;
                     if (selectObj > objects.length)
                         selectObj = 0;
+                    break;
             }
         }
     };
@@ -406,11 +395,11 @@ var render = function() {
         scaleMatrix = mult(scaleMatrix, scaleM(object.scaleValues));
         gl.uniformMatrix4fv( scaleMatrixLoc, false, flatten(scaleMatrix) );
 
-        // capture the rotation of the objects.
-        rotateMatrix = rotate(object.rotationAngles[xAxis], [1, 0, 0] );
-        rotateMatrix = mult(rotateMatrix, rotate(object.rotationAngles[yAxis], [0, 1, 0] ));
-        rotateMatrix = mult(rotateMatrix, rotate(object.rotationAngles[zAxis], [0, 0, 1] ));
-        gl.uniformMatrix4fv( rotateMatrixLoc, false, flatten(rotateMatrix) );
+        // create normal matrix: Matrix that fix the normal vector after the transformations
+        var aux_matrix = mult(modelViewMatrix, transMatrix);
+        aux_matrix = mult(aux_matrix, scaleMatrix);
+        normalMatrix = transpose( invert4x4( aux_matrix ) );
+        gl.uniformMatrix4fv( normalMatrixLoc, false, flatten(normalMatrix) );
 
         // draw triangles
         gl.drawArrays( gl.TRIANGLES, 0, object.pointsArray.length );
