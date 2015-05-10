@@ -1,7 +1,6 @@
 function invert4x4 (matrix) {
   var m = [];
   m = matrix[0].concat(matrix[1], matrix[2], matrix[3]);
-  console.log(m);
   var r = [];
   
   r[0] = m[5]*m[10]*m[15] - m[5]*m[14]*m[11] - m[6]*m[9]*m[15] + m[6]*m[13]*m[11] + m[7]*m[9]*m[14] - m[7]*m[13]*m[10];
