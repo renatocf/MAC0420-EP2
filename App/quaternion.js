@@ -1,53 +1,129 @@
-function createRotationQuaternion(axis, angle) {
-    var quat = [];
+/*
+////////////////////////////////////////////////////////////////////////////////
+-------------------------------------------------------------------------------
+                              QUATERNION (IH)
+-------------------------------------------------------------------------------
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+*/
 
-    quat[3] = Math.cos( radians(angle/2) );
-    quat[0] = axis[0] * Math.sin( radians(angle/2) );
-    quat[1] = axis[1] * Math.sin( radians(angle/2) );
-    quat[2] = axis[2] * Math.sin( radians(angle/2) );
-
-    return quat;
+/**
+ * Quaternion constructor
+ * Class representing the group of Quaternions (IH)
+ * @param scalar    Scalar argument of quaternion
+ * @param vectorial Vectorial argument of quaternion
+ */
+function Quaternion(scalar, vectorial) {
+    this.s = scalar;
+    this.v = vectorial;
 }
 
-function quaternionMulti(q1, q2) {
-    var result = [];
-    result[3] = (q1[3]*q2[3] - q1[0]*q2[0] - q1[1]*q2[1] - q1[2]*q2[2]);
-    result[0] = (q1[3]*q2[0] + q1[0]*q2[3] + q1[1]*q2[2] - q1[2]*q2[1]);
-    result[1] = (q1[3]*q2[1] - q1[0]*q2[2] + q1[1]*q2[3] + q1[2]*q2[0]);
-    result[2] = (q1[3]*q2[2] + q1[0]*q2[1] - q1[1]*q2[0] + q1[2]*q2[3]);
-
-    return result;
+/**
+ * Operator +
+ * @param  q Quartenion to be added
+ * @return Sum of this quartenion with q
+ */
+Quaternion.prototype.add = function(q) {
+    return new this.constructor(this.s + q.s, add(this.v, q.v));
 }
 
-
-function  createRotMatrixFromQuat(quat) {
-    var rmatrix = mat4();
-
-    rmatrix[0][0] = 1 - 2*quat[1]*quat[1] - 2*quat[2]*quat[2];
-    rmatrix[0][1] = 2*quat[0]*quat[1] + 2*quat[3]*quat[2];
-    rmatrix[0][2] = 2*quat[0]*quat[2] - 2*quat[3]*quat[1];
-    rmatrix[0][3] = 0;
-    rmatrix[1][0] = 2*quat[0]*quat[1] - 2*quat[3]*quat[2];
-    rmatrix[1][1] = 1 - 2*quat[0]*quat[0] - 2*quat[2]*quat[2];
-    rmatrix[1][2] = 2*quat[1]*quat[2] + 2*quat[3]*quat[2];
-    rmatrix[1][3] = 0;
-    rmatrix[2][0] = 2*quat[0]*quat[2] + 2*quat[3]*quat[1];
-    rmatrix[2][1] = 2*quat[1]*quat[2] - 2*quat[3]*quat[0];
-    rmatrix[2][2] = 1 - 2*quat[0]*quat[0] - 2*quat[1]*quat[1];
-    rmatrix[2][3] = 0;
-    rmatrix[3]    = vec4(0, 0, 0, 1);
-
-    return rmatrix;
-
+/**
+ * Operator x
+ * @param  q Quartenion to be multiplied
+ * @return Product of this quartenion with q
+ */
+Quaternion.prototype.mul = function(q) {
+    return new this.constructor(
+        this.s * q.s - dot(this.v, q.v),
+        add(add(scalar(this.s, q.v), scalar(q.s, this.v)), cross(this.v, q.v))
+    );
 }
 
-function inverseQuaternion(quat) {
-    var result = [];
+/**
+ * Operator *
+ * @return Conjugate of this quartenion
+ */
+Quaternion.prototype.conjugate =  function() {
+    return new this.constructor(this.s, negate(this.v));
+}
 
-    result[3] = quat[3];
-    result[0] = -quat[0];
-    result[1] = -quat[1];
-    result[2] = -quat[2];
+/**
+ * Operator (vec4)
+ * @return Cast of quartenion to vec4
+ */
+Quaternion.prototype.toVec4 = function() {
+    return vec4(this.s, this.v[0], this.v[1], this.v[2]);
+}
 
-    return result;
+/**
+ * Operator ||
+ * @return Norm of this quartenion
+ */
+Quaternion.prototype.norm = function() {
+    return dot(this.toVec4(), this.toVec4());
+}
+
+/**
+ * Operator q()q^-1
+ * Use quartenion properties to represent a rotation in IR³
+ * @param  vector Vector to be rotated
+ * @return Vector rotated by this quartenion
+ */
+Quaternion.prototype.rotate = function(vector) {
+    vq = new Quaternion(0, vector);
+    return this.mul(vq.mul(this.inverse())).v;
+}
+
+/*
+////////////////////////////////////////////////////////////////////////////////
+-------------------------------------------------------------------------------
+                        ROTATION QUATERNION (IH_1)
+-------------------------------------------------------------------------------
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+*/
+
+// Make subclass of Quaternion
+RotationQuaternion.prototype = new Quaternion();
+RotationQuaternion.prototype.constructor = RotationQuaternion;
+
+/**
+ * RotationQuartenion constructor
+ * Class representing the subgroup of Quaternions (IH) which represent
+ * all possible rotations in IR³
+ *
+ * @param scalar    Scalar argument of quaternion
+ * @param vectorial Vectorial argument of quaternion
+ */
+function RotationQuaternion(scalar, vectorial) {
+    Quaternion.call(this, scalar, vectorial);
+}
+
+RotationQuaternion.identity = new Quaternion(1, vec3());
+
+/**
+ * Operator ^-1
+ * @return Inverse of this quartenion (same as conjugate)
+ */
+RotationQuaternion.prototype.inverse = function() {
+    return this.conjugate();
+}
+
+/*
+////////////////////////////////////////////////////////////////////////////////
+-------------------------------------------------------------------------------
+                            RELATED FUNCTIONS
+-------------------------------------------------------------------------------
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+*/
+
+/**
+ * @param  angle Angle of rotation
+ * @param  axis  Axis of rotation
+ * @return RotationQuartenion which represents an object being rotated
+ *         by an angle around an axis
+ */
+function createRotationQuaternionFromAngleAndAxis(angle, axis) {
+    return new RotationQuaternion(
+        Math.cos(radians(angle/2)),
+        scalar( Math.sin(radians(angle/2)), axis)
+    );
 }
