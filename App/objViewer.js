@@ -22,8 +22,6 @@ var normalMatrix, normalMatrixLoc;
 // translation and scale matrices
 var transMatrix, scaleMatrix;
 var transMatrixLoc, scaleMatrixLoc;
-// rotate matrix 
-//var rotateMatrix, rotateMatrixLoc;
 
 // tranlation matrix responsible for zoom in and zoom out.
 var zoomMatrix;
@@ -48,6 +46,8 @@ var flagZ = false;
 var ambientColor, diffuseColor, specularColor;
 
 // camera definitions
+var trackball;
+
 var eye = vec3(1.0, 0.0, 0.0);
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
@@ -159,7 +159,7 @@ window.onload = function init() {
                 if (flagSelect) { // estamos manipulando um objeto.
                     var dx = mdowncanX - mupcanX;
                     var dy = mdowncanY - mupcanY;
-                    var dist = Math.sqrt(dx*dx + dy*dy);                    
+                    var dist = Math.sqrt(dx*dx + dy*dy);
 
                     // Foi escolhida a opcao de translacao
                     if (flagT) {
@@ -204,30 +204,30 @@ window.onload = function init() {
                     }
                     // Foi escolhida a opcao de escala
                     else if (flagS) {
-                        if (flagX) { 
+                        if (flagX) {
                             if (mupcanX > mdowncanX)
                                 objects[selectObj].scaleValues[0] += dist;
                             else
-                                objects[selectObj].scaleValues[0] -= dist;                            
-                            
+                                objects[selectObj].scaleValues[0] -= dist;
+
                             flagS = false;
                             flagX = false;
                         }
-                        else if (flagY) { 
+                        else if (flagY) {
                             if (mupcanY > mdowncanY)
                                 objects[selectObj].scaleValues[1] += dist;
                             else
                                 objects[selectObj].scaleValues[1] -= dist;
-                            
+
                             flagS = false;
                             flagY = false;
                         }
-                        else if (flagZ) { 
+                        else if (flagZ) {
                             if ((mupcanX >= mdowncanX && mupcanY >= mdowncanY) ||
                                 (mupcanX <= mdowncanX && mupcanY >= mdowncanY))
-                                objects[selectObj].scaleValues[2] += dist;                                
+                                objects[selectObj].scaleValues[2] += dist;
                             else
-                                objects[selectObj].scaleValues[2] -= dist;                       
+                                objects[selectObj].scaleValues[2] -= dist;
 
                             flagS = false;
                             flagZ = false;
@@ -237,9 +237,13 @@ window.onload = function init() {
                     else if (flagR) {
                         // Rotacionar o objeto atraves de um trackaball.
                     }
-                }                
+                }
                 else {
                     // Nao tem objeto selecionado, entao rotaciona a camera.
+                    var camera_quaternion = trackball.rotation(mdowncanX, mdowncanY,
+                                                               mupcanX, mupcanY);
+                    eye = camera_quaternion.rotate(eye);
+                    console.log(eye);
                 }
                 break;
             case 3:
@@ -331,6 +335,14 @@ window.onload = function init() {
     gl.uniform1f(gl.getUniformLocation(program,
        "shininess"),materialShininess);
 
+    // create eye
+    eye = vec3(cradius * Math.sin(ctheta) * Math.cos(cphi),
+               cradius * Math.sin(ctheta) * Math.sin(cphi),
+               cradius * Math.cos(ctheta));
+
+    // create trackball
+    trackball = new Trackball(vec3(0, 0, 0), Math.abs(near-far)/2);
+
     render();
 }
 
@@ -340,11 +352,6 @@ var render = function() {
 
     var wrapper = document.getElementById( "gl-wrapper" );
     var ratio = wrapper.clientHeight/wrapper.clientWidth;
-
-    // create eye
-    eye = vec3(cradius * Math.sin(ctheta) * Math.cos(cphi),
-               cradius * Math.sin(ctheta) * Math.sin(cphi),
-               cradius * Math.cos(ctheta));
 
     // create model view matrix
     modelViewMatrix = lookAt(eye, at, up);
@@ -379,10 +386,10 @@ var render = function() {
                                 flatten(diffuseProduct_obj) );
                 }
             }
-        else 
+        else
             gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
                 flatten(diffuseProduct) );
-        
+
 
         // create translation matrix to set object in the origin and capture
         // the manipulation of the objects.
@@ -467,7 +474,6 @@ function viewportToCanonicalCoordinates(x, y) {
     return [can_x, can_y];
 }
 
-
 function drawAxes(object) {
     gl.lineWidth(2);
 
@@ -485,7 +491,7 @@ function drawAxes(object) {
         vec4(0.0, 0.0, 0.0, 1.0),
         vec4(0.0, 0.0, object.dimension.maxZ*1.4, 1.0)
     ];
-    
+
     var vBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
     gl.bufferData( gl.ARRAY_BUFFER, flatten(lines), gl.STATIC_DRAW );
@@ -493,7 +499,7 @@ function drawAxes(object) {
     var vPosition = gl.getAttribLocation(program, "vPosition");
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
-           
+
 
     gl.drawArrays( gl.LINE_STRIP, 0, 5);
 }
