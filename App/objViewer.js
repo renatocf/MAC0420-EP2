@@ -22,16 +22,20 @@ var normalMatrix, normalMatrixLoc;
 // translation and scale matrices
 var transMatrix, scaleMatrix;
 var transMatrixLoc, scaleMatrixLoc;
+// rotate matrix
+var rotateMatrix, rotateMatrixLoc;
 
 // tranlation matrix responsible for zoom in and zoom out.
 var zoomMatrix;
 var zoomCoords = [0.0, 0.0, 0.0];
 
 // Mouse click coordinates
-var mouseupX, mouseupY;
-var mousedownX, mousedownY;
-var mupcanX, mupcanY;
-var mdowncanX, mdowncanY;
+var actualX, actualY;
+var lastX, lastY;
+var actualcanX, actualcanY;
+var lastcanX, lastcanY;
+
+var mousedown = false;
 
 var selectObj; // index of the selected object
 var flagSelect = false;
@@ -110,8 +114,8 @@ window.onload = function init() {
     transMatrixLoc = gl.getUniformLocation(program, "transMatrix");
     scaleMatrixLoc = gl.getUniformLocation(program, "scaleMatrix");
 
-    // create rotation matrix
-    //rotateMatrixLoc = gl.getUniformLocation(program, "rotateMatrix");
+    //create rotation matrix
+    rotateMatrixLoc = gl.getUniformLocation(program, "rotateMatrix");
 
     document.getElementById('files').onchange = function (evt) {
 
@@ -131,11 +135,14 @@ window.onload = function init() {
     };
 
     canvas.onmousedown = function (evt) {
-        mousedownX = evt.clientX;
-        mousedownY = evt.clientY;
-        var rst = viewportToCanonicalCoordinates(mousedownX, mousedownY);
-        mdowncanX = rst[0];
-        mdowncanY = rst[1];
+        lastX = evt.clientX;
+        lastY = evt.clientY;
+        var rst = viewportToCanonicalCoordinates(lastX, lastY);
+        lastcanX = rst[0];
+        lastcanY = rst[1];
+
+        mousedown = true;
+
         switch (evt.which) {
             case 1:
                 if (evt.shiftKey) {
@@ -148,43 +155,45 @@ window.onload = function init() {
 
     };
 
-    canvas.onmouseup = function (evt) {
-        mouseupX = evt.clientX;
-        mouseupY = evt.clientY;
-        var rst = viewportToCanonicalCoordinates(mouseupX, mouseupY);
-        mupcanX = rst[0];
-        mupcanY = rst[1];
+    canvas.onmousemove = function (evt) {
+        actualX = evt.clientX;
+        actualY = evt.clientY;
+        var rst = viewportToCanonicalCoordinates(actualX, actualY);
+        actualcanX = rst[0];
+        actualcanY = rst[1];
+        console.log("MOVE");
         switch (evt.which) {
             case 1:
-                if (flagSelect) { // estamos manipulando um objeto.
-                    var dx = mdowncanX - mupcanX;
-                    var dy = mdowncanY - mupcanY;
+                if (flagSelect && mousedown) { // estamos manipulando um objeto.
+                    console.log("SELECT");
+                    var dx = lastcanX - actualcanX;
+                    var dy = lastcanY - actualcanY;
                     var dist = Math.sqrt(dx*dx + dy*dy);
 
                     // Foi escolhida a opcao de translacao
                     if (flagT) {
                         dist = dist * objects[selectObj].radius;
                         if (flagX) {
-                            if (mupcanX > mdowncanX)
+                            if (actualcanX > lastcanX)
                                 objects[selectObj].centroid[0] -= dist;
                             else
                                 objects[selectObj].centroid[0] += dist;
 
-                            flagT = false;
-                            flagX = false;
+                            //flagT = false;
+                            //flagX = false;
                         }
                         else if (flagY) {
-                            if (mupcanY > mdowncanY)
+                            if (actualcanY > lastcanY)
                                 objects[selectObj].centroid[1] -= dist;
                             else
                                 objects[selectObj].centroid[1] += dist;
 
-                            flagT = false;
-                            flagY = false;
+                            //flagT = false;
+                            //flagY = false;
                         }
                         else if (flagZ) {
-                           if ((mupcanX >= mdowncanX && mupcanY >= mdowncanY) ||
-                                (mupcanX <= mdowncanX && mupcanY >= mdowncanY))
+                           if ((actualcanX >= lastcanX && actualcanY >= lastcanY) ||
+                                (actualcanX <= lastcanX && actualcanY >= lastcanY))
                                 objects[selectObj].centroid[2] -= dist;
                             else
                                 objects[selectObj].centroid[2] += dist;
@@ -198,52 +207,87 @@ window.onload = function init() {
                                 if (objects[selectObj].centroid[2] < -1 * objects[selectObj].radius)
                                     objects[selectObj].centroid[2] = -1 * objects[selectObj].radius;
 
-                            flagT = false;
-                            flagZ= false;
+                            //flagT = false;
+                            //flagZ= false;
                         }
-                    }
+
+                        lastcanX = actualcanX;
+                        lastcanY = actualcanY;
+                    }file:///media/Dados/IME/7semestre/CG/EP2/EP2/objViewer.html
                     // Foi escolhida a opcao de escala
                     else if (flagS) {
                         if (flagX) {
-                            if (mupcanX > mdowncanX)
+                            if (actualcanX > lastcanX)
                                 objects[selectObj].scaleValues[0] += dist;
                             else
                                 objects[selectObj].scaleValues[0] -= dist;
 
-                            flagS = false;
-                            flagX = false;
+                            //flagS = false;
+                            //flagX = false;
                         }
                         else if (flagY) {
-                            if (mupcanY > mdowncanY)
+                            if (actualcanY > lastcanY)
                                 objects[selectObj].scaleValues[1] += dist;
                             else
                                 objects[selectObj].scaleValues[1] -= dist;
 
-                            flagS = false;
-                            flagY = false;
+                            //flagS = false;
+                            //flagY = false;
                         }
                         else if (flagZ) {
-                            if ((mupcanX >= mdowncanX && mupcanY >= mdowncanY) ||
-                                (mupcanX <= mdowncanX && mupcanY >= mdowncanY))
+                            if ((actualcanX >= lastcanX && actualcanY >= lastcanY) ||
+                                (actualcanX <= lastcanX && actualcanY >= lastcanY))
                                 objects[selectObj].scaleValues[2] += dist;
                             else
                                 objects[selectObj].scaleValues[2] -= dist;
 
-                            flagS = false;
-                            flagZ = false;
+                            //flagS = false;
+                            //flagZ = false;
                         }
+
+                        lastcanX = actualcanX;
+                        lastcanY = actualcanY;
                     }
                     // Foi escolhida a opcao de rotacao.
+                    // Não está funcionando muito bem.
                     else if (flagR) {
                         // Rotacionar o objeto atraves de um trackaball.
+                        centro_trackball = [objects[selectObj].centroid[0],
+                                            objects[selectObj].centroid[1],
+                                            objects[selectObj].centroid[2] ];
+
+
+                        trackball_obj = new Trackball(vec3(centro_trackball), 
+                                                       Math.abs(objects[selectObj].radius)/2);
+
+                        objects[selectObj].rotationMatrix = mult(objects[selectObj].rotationMatrix, 
+                            trackball_obj.rotation(lastcanX, lastcanY, actualcanX, actualcanY, 'm'));
+
+                        console.log(objects[selectObj].rotationMatrix);
+
+                        //flagR = false;
+                        //flagZ = flagY = flagX = false;
+
+                        //rotateMatrix = object_quaternion.rotate(0);
                     }
                 }
                 else {
-                    // Nao tem objeto selecionado, entao rotaciona a camera.
-                    var camera_quaternion = trackball.rotation(mdowncanX, mdowncanY,
-                                                               mupcanX, mupcanY);
-                    eye = camera_quaternion.rotate(eye);
-                    console.log(eye);
+                    if (mousedown) {
+                        // Nao tem objeto selecionado, entao rotaciona a camera.
+                        //var camera_quaternion = trackball.rotation(lastcanX, lastcanY,
+                                                                //actualcanX, actualcanY, 'q');
+
+                        var camera_rotate = trackball.rotation(lastcanX, lastcanY,
+                                                                actualcanX, actualcanY, 'm');
+                        eye = vec4(eye, 0.0);
+                        at = vec4(at, 0.0);
+                        up = vec4(up, 0.0);
+                        eye = multMatrixVec(camera_rotate, eye);
+                        at = multMatrixVec(camera_rotate, at);
+                        up = multMatrixVec(camera_rotate, up);
+                        //eye = camera_quaternion.rotate(eye);
+                        //console.log(eye);
+                    }                    
                 }
                 break;
             case 3:
@@ -266,6 +310,12 @@ window.onload = function init() {
                 break;
         }
     };
+
+    canvas.onmouseup = function (evt) {
+        mousedown = false;
+        flagS = flagR = flagT = false;
+        flagX = flagY = flagZ = false;
+    }
 
     document.onkeyup = function (evt) {
         //console.log(evt.keyCode);
@@ -354,7 +404,10 @@ var render = function() {
     var ratio = wrapper.clientHeight/wrapper.clientWidth;
 
     // create model view matrix
-    modelViewMatrix = lookAt(eye, at, up);
+    var e = vec3(eye[0], eye[1], eye[2]);
+    var a = vec3(at[0], at[1], at[2]);
+    var u = vec3(up[0], up[1], up[2]);
+    modelViewMatrix = lookAt(e, a, u);
     modelViewMatrix = mult(modelViewMatrix, scaleM(vec3(ratio, ratio, ratio)));
 
     zoomMatrix = translate( zoomCoords );
@@ -402,9 +455,13 @@ var render = function() {
         scaleMatrix = mult(scaleMatrix, scaleM(object.scaleValues));
         gl.uniformMatrix4fv( scaleMatrixLoc, false, flatten(scaleMatrix) );
 
+        rotateMatrix = object.rotationMatrix;
+        gl.uniformMatrix4fv( rotateMatrixLoc, false, flatten(rotateMatrix) );
+
         // create normal matrix: Matrix that fix the normal vector after the transformations
         var aux_matrix = mult(modelViewMatrix, transMatrix);
         aux_matrix = mult(aux_matrix, scaleMatrix);
+        aux_matrix = mult(aux_matrix, rotateMatrix);
         normalMatrix = transpose( invert4x4( aux_matrix ) );
         gl.uniformMatrix4fv( normalMatrixLoc, false, flatten(normalMatrix) );
 
@@ -455,7 +512,11 @@ function loadObject(data) {
     newObject.scaleValues = [1.0, 1.0, 1.0];
     // Insere os angulos de rotacao do objeto. Inicializados com 0, pois
     // o objeto ainda não foi manipulado.
-    newObject.rotationAngles = [0, 0, 0];
+    //var aux_rotate = rotate(0, [1, 0, 0]);
+    //aux_rotate = mult(aux_rotate, rotate(0, [0, 1, 0]));
+    ///aux_rotate = mult(aux_rotate, rotate(0, [0, 0, 1]));
+    //newObject.rotationMatrix = aux_rotate;
+    newObject.rotationMatrix = mat4(1);
 
     objects.push(newObject);
     console.log(newObject);
