@@ -25,7 +25,7 @@ function Trackball(center, radius) {
  * @param  y2 y-axis final position
  * @return Rotation quaternion to rotate vector in the trackball
  */
-Trackball.prototype.rotation = function(x1, y1, x2, y2) {
+Trackball.prototype.rotation = function(x1, y1, x2, y2, mORq) {
     var z1 = this.calculateZ(x1, y1);
     var z2 = this.calculateZ(x2, y2);
 
@@ -35,7 +35,10 @@ Trackball.prototype.rotation = function(x1, y1, x2, y2) {
     var N = cross(V1, V2);
     var theta = 10 * dot(V1, V2);
 
-    return createRotationQuaternionFromAngleAndAxis(theta, N);
+    if (mORq == 'q') // return a quaternion
+        return createRotationQuaternionFromAngleAndAxis(theta, N);
+    else // return a matrix
+        return rotate(theta, N);
 }
 
 /**
