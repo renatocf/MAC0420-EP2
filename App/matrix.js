@@ -36,3 +36,28 @@ function invert4x4 (matrix) {
 
   return result;
 }
+
+// not working!
+function multMatrixVec(matrix, vector) {
+
+  var result = [];
+  var sum;
+  
+  for ( var i = 0; i < matrix.length; i++ ) {
+    if ( matrix[i].length != vector.length ) {
+      throw "mult(): trying to add matrices of different dimensions";
+    }
+  }
+
+  for ( var i = 0; i < matrix[0].length; i++ ) {
+    sum = 0.0;
+    for ( var j = 0; j < vector.length; j++ ) {      
+      sum += matrix[i][j] * vector[j];
+      console.log(matrix[i][j] * vector[j]);
+      console.log("sum " + j + "  " + sum);
+    }
+    result.push( sum );    
+ }
+
+  return result;
+}
