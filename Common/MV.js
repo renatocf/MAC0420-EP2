@@ -454,6 +454,7 @@ function perspective( fovy, aspect, near, far )
 {
     var f = 1.0 / Math.tan( radians(fovy) / 2 );
     var d = far - near;
+    //var d = near - far;
 
     var result = mat4();
     result[0][0] = f / aspect;
@@ -599,7 +600,7 @@ function mix( u, v, s )
 // Vector and Matrix functions
 //
 
-function scale( s, u )
+function scalar( s, u )
 {
     if ( !Array.isArray(u) ) {
         throw "scale: second parameter " + u + " is not a vector";
