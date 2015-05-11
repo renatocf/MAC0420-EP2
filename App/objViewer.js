@@ -213,7 +213,7 @@ window.onload = function init() {
 
                         lastcanX = actualcanX;
                         lastcanY = actualcanY;
-                    }file:///media/Dados/IME/7semestre/CG/EP2/EP2/objViewer.html
+                    }
                     // Foi escolhida a opcao de escala
                     else if (flagS) {
                         if (flagX) {
