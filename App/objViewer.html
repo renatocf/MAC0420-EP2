@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title>Simple OBJ Viewer</title>
-  
+
     <link rel="stylesheet" type="text/css" href="objViewer.css">
   </head>
 
@@ -11,18 +11,18 @@
     attribute  vec4 vPosition;
     attribute  vec4 vNormal;
     varying vec4 fColor;
-    
-    uniform vec4 ambientProduct; 
+
+    uniform vec4 ambientProduct;
     uniform vec4 diffuseProduct;
     uniform vec4 specularProduct;
     uniform float shininess;
-    
+
     uniform mat4 modelViewMatrix;
     uniform mat4 projectionMatrix;
 
     // normal matrix
     uniform mat4 normalMatrix;
-    
+
     uniform vec4 lightPosition;
 
     // matriz de translacao
@@ -37,44 +37,44 @@
     void main()
     {
         vec3 pos = -(modelViewMatrix * vPosition).xyz;
-        
+
         // fixed light postion
         vec3 light = lightPosition.xyz;
         vec3 L = normalize( light - pos );
-    
+
         vec3 E = normalize( -pos );
         vec3 H = normalize( L + E );
-    
+
         // transform vertex normal into eye coordinates
         vec3 N = normalize( (normalMatrix * vNormal).xyz );
-    
+
         // compute terms in the illumination equation
         vec4 ambient = ambientProduct;
-    
+
         float Kd = max( dot(L, N), 0.0 );
         vec4  diffuse = Kd * diffuseProduct;
-    
+
         float Ks = pow( max(dot(N, H), 0.0), shininess );
         vec4  specular = Ks * specularProduct;
-        
+
         if ( dot(L, N) < 0.0 ) {
     	   specular = vec4(0.0, 0.0, 0.0, 1.0);
-        } 
-    
-        gl_Position = projectionMatrix * modelViewMatrix  
+        }
+
+        gl_Position = projectionMatrix * modelViewMatrix
                        * scaleMatrix * transMatrix * vPosition;
-        
+
         fColor = ambient + diffuse +specular;
-        
+
         fColor.a = 1.0;
     }
   </script>
-  
+
   <script id="fragment-shader" type="x-shader/x-fragment">
     precision mediump float;
-    
+
     varying vec4 fColor;
-    
+
     void main()
     {
         gl_FragColor = fColor;
@@ -84,16 +84,18 @@
   <script type="text/javascript" src="../Common/webgl-utils.js"></script>
   <script type="text/javascript" src="../Common/initShaders.js"></script>
   <script type="text/javascript" src="../Common/MV.js"></script>
-  
+
+  <script type="text/javascript" src="quaternion.js"></script>
+  <script type="text/javascript" src="trackball.js"></script>
+  <script type="text/javascript" src="matrix.js"></script>
+
   <script type="text/javascript" src="objViewer.js"></script>
   <script type="text/javascript" src="objReader.js"></script>
-  <script type="text/javascript" src="quaternion.js"></script>
-  <script type="text/javascript" src="matrix.js"></script>
 
   <body>
     <div id="gl-wrapper">
       <input type="file" id="files" name="files[]" accept=".obj,"></input>
-      
+
       <canvas id="gl-canvas" width="512" height="512">
         Oops ... your browser doesn't support the HTML5 canvas element
       </canvas>
@@ -101,7 +103,7 @@
       <button id = "ButtonF">Flat Shading</button>
       <button id = "ButtonS">Smooth Shading</button>
       <button id = "ButtonN">File Normals</button>
-      
+
     </div>
   </body>
 </html>
