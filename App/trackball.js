@@ -33,7 +33,7 @@ Trackball.prototype.rotation = function(x1, y1, x2, y2, mORq) {
     var V2 = normalize(vec3(x2, y2, z2));
 
     var N = cross(V1, V2);
-    var theta = 10 * dot(V1, V2);
+    var theta = 10 * Math.acos(dot(V1, V2));
 
     if (N[0] == 0 && N[1] == 0 && N[2] == 0) theta = 0;
 
