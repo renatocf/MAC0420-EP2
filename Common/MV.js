@@ -345,6 +345,11 @@ function rotate( angle, axis )
         axis = [ arguments[1], arguments[2], arguments[3] ];
     }
 
+    if (angle == 0) {        
+        return mat4(1);
+    }
+
+
     var v = normalize( axis );
 
     var x = v[0];
