@@ -63,6 +63,16 @@ Quaternion.prototype.norm = function() {
 }
 
 /**
+ * @return Normalized version of this quartenion
+ */
+Quaternion.prototype.normalize = function() {
+    return new this.constructor(
+        this.s/this.norm(),
+        scalar(1/this.norm(), this.v)
+    );
+}
+
+/**
  * Operator q()q^-1
  * Use quartenion properties to represent a rotation in IR³
  * @param  vector Vector to be rotated
