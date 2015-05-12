@@ -1,13 +1,12 @@
 What do we have so far:
 
-	1. Load more than one object in scene. (10%)
-	2. Perspect projection
-	3. SHIFT_click select the first object in the list of objects and change its color to blue. (10%)
-	4. Draw the xyz-axis in the object when it is select (show the handlers for the tranformations). (10%)
-	5. Scale the select object (fixing the normal vectors). (15%)
-	6. Tranlate the select object. (15%)
-	7. key 'Esc' un-select the object.
-	8. Test: key 'o': change the select object to the next in the list of objects.
-	
-
- 
+    1. Load more than one object in scene. (10%)
+    2. Perspect projection
+    3. SHIFT_click select the first object in the list of objects and change its color to blue. (10%)
+    4. Draw the xyz-axis in the object when it is select (show the handlers for the tranformations). (10%)
+    5. Scale the selected object (fixing the normal vectors). (15%)
+    6. Rotate the selected object. (15%)
+    7. Tranlate the selected object. (15%)
+    7. Camera trackball. (20%)
+    8. Key 'Esc' un-select the object.
+    9. Test: key 'o': change the select object to the next in the list of objects.
