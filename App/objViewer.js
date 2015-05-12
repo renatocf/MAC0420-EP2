@@ -492,8 +492,8 @@ function loadObject(data) {
 }
 
 function viewportToCanonicalCoordinates(x, y) {
-    var vp_right = document.documentElement.clientWidth;
-    var vp_top = document.documentElement.clientHeight;
+    var vp_right = canvas.width;
+    var vp_top = canvas.height;
     var can_x;
     var can_y;
 
