@@ -16,10 +16,6 @@ var materialShininess = 100.0;
 var modelViewMatrix, projectionMatrix;
 var modelViewMatrixLoc, projectionMatrixLoc;
 
-// tranlation matrix responsible for zoom in and zoom out.
-var zoomMatrix;
-var zoomCoords = [0.0, 0.0, 0.0];
-
 // normal matrix
 var normalMatrix, normalMatrixLoc;
 
@@ -121,6 +117,10 @@ window.onload = function init() {
     //create rotation matrix
     rotateMatrixLoc = gl.getUniformLocation(program, "rotateMatrix");
 
+    document.getElementById("ButtonF").onclick = function(){shading = flatShading;};
+    document.getElementById("ButtonS").onclick = function(){shading = smoothShading;};
+    document.getElementById("ButtonN").onclick = function(){shading = fileShading;};
+
     document.getElementById('files').onchange = function (evt) {
 
         // TO DO: load OBJ file and display
@@ -149,9 +149,9 @@ window.onload = function init() {
             case 1:
                 mousedownL = true;
                 if (evt.shiftKey) {
-                    // Selecionar o objeto mais proximo da camera.
+                    // Select objetc.
                     flagSelect = true;
-                    selectObj = 0; // indice do objeto selecionado.
+                    selectObj = 0; // incdex of selected object.
                 }
                 break;
             case 3:
@@ -167,132 +167,124 @@ window.onload = function init() {
         var rst = viewportToCanonicalCoordinates(actualX, actualY);
         actualcanX = rst[0];
         actualcanY = rst[1];
-        switch (evt.which) {
-            case 1:
-                if (flagSelect && mousedownL) { // estamos manipulando um objeto.
-                    var dx = lastcanX - actualcanX;
-                    var dy = lastcanY - actualcanY;
-                    var dist = Math.sqrt(dx*dx + dy*dy);
 
-                    // Foi escolhida a opcao de translacao
-                    if (flagT) {
-                        dist = dist * objects[selectObj].radius;
-                        if (flagX) {
-                            if (actualcanX > lastcanX)
-                                objects[selectObj].transValues[0] -= dist;
-                            else
-                                objects[selectObj].transValues[0] += dist;
-                        }
-                        else if (flagY) {
-                            if (actualcanY > lastcanY)
-                                objects[selectObj].transValues[1] -= dist;
-                            else
-                                objects[selectObj].transValues[1] += dist;
-                        }
-                        else if (flagZ) {
-                           if ((actualcanX >= lastcanX && actualcanY >= lastcanY) ||
-                                (actualcanX <= lastcanX && actualcanY >= lastcanY))
-                                objects[selectObj].transValues[2] -= dist;
-                            else
-                                objects[selectObj].transValues[2] += dist;
+        // Handling an object
+        if (flagSelect && mousedownL) { 
+            var dx = lastcanX - actualcanX;
+            var dy = lastcanY - actualcanY;
+            var dist = Math.sqrt(dx*dx + dy*dy);
 
-                            // Keep objects visible.
-                            if (objects[selectObj].radius < 1) {
-                                if (objects[selectObj].transValues[2] < -1)
-                                    objects[selectObj].transValues[2] = -1;
-                            }
-                            else
-                                if (objects[selectObj].transValues[2] < -1 * objects[selectObj].radius)
-                                    objects[selectObj].transValues[2] = -1 * objects[selectObj].radius;
-                        }
-
-                        lastcanX = actualcanX;
-                        lastcanY = actualcanY;
-                    }
-                    // Foi escolhida a opcao de escala
-                    else if (flagS) {
-                        if (flagX) {
-                            if (actualcanX > lastcanX)
-                                objects[selectObj].scaleValues[0] += dist;
-                            else
-                                objects[selectObj].scaleValues[0] -= dist;
-                        }
-                        else if (flagY) {
-                            if (actualcanY > lastcanY)
-                                objects[selectObj].scaleValues[1] += dist;
-                            else
-                                objects[selectObj].scaleValues[1] -= dist;
-                        }
-                        else if (flagZ) {
-                            if ((actualcanX >= lastcanX && actualcanY >= lastcanY) ||
-                                (actualcanX <= lastcanX && actualcanY >= lastcanY))
-                                objects[selectObj].scaleValues[2] += dist;
-                            else
-                                objects[selectObj].scaleValues[2] -= dist;
-                        }
-
-                        lastcanX = actualcanX;
-                        lastcanY = actualcanY;
-                    }
-                    else if (flagR) {
-                        // Rotacionar o objeto atraves de um trackaball.
-
-                        var trackball_obj = new Trackball(objects[selectObj].centroid,
-                                                          Math.abs(objects[selectObj].radius)/2);
-
-                        objects[selectObj].rotationMatrix = mult(objects[selectObj].rotationMatrix,
-                            trackball_obj.rotation(lastcanX, lastcanY, actualcanX, actualcanY, 'm'));
-
-                        console.log(objects[selectObj].rotationMatrix);
-                    }
+            // Translate selected object
+            if (flagT) {
+                dist = dist * objects[selectObj].radius;
+                if (flagX) {
+                    if (actualcanX > lastcanX)
+                        objects[selectObj].transValues[0] -= dist;
+                    else
+                        objects[selectObj].transValues[0] += dist;
                 }
-                else {
-                    if (mousedownL) {
-                        var trackball_q = trackball.rotation(actualcanX, actualcanY,
-                                                             lastcanX, lastcanY, 'q');
-
-                        camera_rotate = camera_rotate.mul(trackball_q);
-                    }
+                else if (flagY) {
+                    if (actualcanY > lastcanY)
+                        objects[selectObj].transValues[1] -= dist;
+                    else
+                        objects[selectObj].transValues[1] += dist;
                 }
-                break;
-            case 3:
-                if (mousedownR) {
-                    // Zoom in and zoom out.
-                    var dx = lastcanX - actualcanX;
-                    var dy = lastcanY - actualcanY;
-                    var dist = Math.sqrt(dx*dx + dy*dy);
-
-                    var new_near = near, new_far = far;
-
+                else if (flagZ) {
                     if ((actualcanX >= lastcanX && actualcanY >= lastcanY) ||
-                        (actualcanX <= lastcanX && actualcanY >= lastcanY)) {
-                        // zoomCoords[2] = zoomCoords[2] + dist;
-                        new_far  += dist/2;
-                        new_near -= dist/2;
+                        (actualcanX <= lastcanX && actualcanY >= lastcanY))
+                            objects[selectObj].transValues[2] -= dist;
+                    else
+                        objects[selectObj].transValues[2] += dist;
+
+                    // Keep objects visible.
+                    if (objects[selectObj].radius < 1) {
+                        if (objects[selectObj].transValues[2] < -1)
+                            objects[selectObj].transValues[2] = -1;
                     }
                     else {
-                        // zoomCoords[2] = zoomCoords[2] - dist;
-                        new_far  -= dist/2;
-                        new_near += dist/2;
+                        if (objects[selectObj].transValues[2] < -1 * objects[selectObj].radius)
+                            objects[selectObj].transValues[2] = -1 * objects[selectObj].radius;
                     }
-
-                    if (new_far - new_near < 1) break;
-                    if (new_far - new_near > 16) break;
-
-                    far = new_far;
-                    near = new_near;
-                    console.log("near: " + near + " far: " + far);
-                    cradius = far-near;
-
-                    // create eye
-                    eye = vec4(cradius * Math.sin(ctheta) * Math.cos(cphi),
-                               cradius * Math.sin(ctheta) * Math.sin(cphi),
-                               cradius * Math.cos(ctheta));
-
-                    // create trackball
-                    trackball = new Trackball(vec3(0, 0, 0), Math.abs(near-far)/2);
                 }
-                break;
+
+                lastcanX = actualcanX;
+                lastcanY = actualcanY;
+            }
+            // Scale selected object
+            else if (flagS) {
+                if (flagX) {
+                    if (actualcanX > lastcanX)
+                        objects[selectObj].scaleValues[0] += dist;
+                    else
+                        objects[selectObj].scaleValues[0] -= dist;
+                }
+                else if (flagY) {
+                    if (actualcanY > lastcanY)
+                        objects[selectObj].scaleValues[1] += dist;
+                    else
+                        objects[selectObj].scaleValues[1] -= dist;
+                }
+                else if (flagZ) {
+                    if ((actualcanX >= lastcanX && actualcanY >= lastcanY) ||
+                        (actualcanX <= lastcanX && actualcanY >= lastcanY))
+                            objects[selectObj].scaleValues[2] += dist;
+                    else
+                        objects[selectObj].scaleValues[2] -= dist;
+                }
+
+                lastcanX = actualcanX;
+                lastcanY = actualcanY;
+            }
+            // Rotate selected objeto using a trackball
+            else if (flagR) {
+                var trackball_obj = new Trackball(objects[selectObj].centroid,
+                                                  objects[selectObj].radius);
+
+                objects[selectObj].rotationMatrix = mult(objects[selectObj].rotationMatrix,
+                        trackball_obj.rotation(lastcanX, lastcanY, actualcanX, actualcanY, 'm'));
+
+                    
+            }
+        }
+        // Handling the camera.
+        // Rotate the camera using a trackball
+        else if (mousedownL) {
+            var trackball_q = trackball.rotation(actualcanX, actualcanY,
+                                                 lastcanX, lastcanY, 'q');
+
+            camera_rotate = camera_rotate.mul(trackball_q);
+        }
+        // Zoom in and zoom out
+        else if (mousedownR) {
+            var dx = lastcanX - actualcanX;
+            var dy = lastcanY - actualcanY;
+            var dist = Math.sqrt(dx*dx + dy*dy);
+
+            var new_near = near, new_far = far;
+
+            if ((actualcanX >= lastcanX && actualcanY >= lastcanY) ||
+                (actualcanX <= lastcanX && actualcanY >= lastcanY)) {
+                    new_far  += dist/2;
+                    new_near -= dist/2;
+            }
+            else {
+                new_far  -= dist/2;
+                new_near += dist/2;
+            }
+
+            if (new_far - new_near > 1 && new_far - new_near < 16) {
+                far = new_far;
+                near = new_near;
+                cradius = far-near;
+
+                // create eye
+                eye = vec4( cradius * Math.sin(ctheta) * Math.cos(cphi),
+                            cradius * Math.sin(ctheta) * Math.sin(cphi),
+                            cradius * Math.cos(ctheta) );
+
+                // create trackball
+                trackball = new Trackball(vec3(0, 0, 0), Math.abs(near-far)/2);
+            }
         }
     };
 
@@ -305,10 +297,10 @@ window.onload = function init() {
     }
 
     document.onkeyup = function (evt) {
-        if (flagSelect) {  // if there is a selected object.
+        // A object is selected.
+        if (flagSelect) {  
             switch (evt.keyCode) {
                 case 46: // delete key
-                    console.log("Delect object");
                     // remove o objeto de objects.
                     objects.splice(selectObj, selectObj+1);
                     flagSelect = false;
@@ -316,44 +308,35 @@ window.onload = function init() {
                     break;
                 case 88: // x key
                     if (!flagT && !flagS && !flagR) {
-                        console.log("Delect object");
                         // remove o objeto de objects.
                         objects.splice(selectObj, selectObj+1);
                         flagSelect = false;
                         selectObj = -1;
                     }
-                    console.log("x-axis");
                     flagX = true;
                     break;
                 case 89: // y key
-                    console.log("y-axis");
                     flagY = true;
                     break;
                 case 90: // z key
-                    console.log("z-axis");
                     flagZ = true;
                     break;
                 case 84: // t key
-                    console.log("translate object");
                     flagT = true;
                     break;
                 case 83: // s key
-                    console.log("Scale object");
                     flagS = true;
                     break;
                 case 82: // r key
-                    console.log("Rotate object");
                     flagR = true;
                     break;
-                case 27: // tecla ESC, des-selecionda o objeto
+                case 27: // ESC key, unselect an object
                     flagSelect = false;
                     selectObj = -1;
                     break;
-                // teste
-                case 79: // tecla 'o' ou 'O' muda o objeto selecionado para o proximo da lista.
-                    selectObj = selectObj + 1;
-                    if (selectObj > objects.length)
-                        selectObj = 0;
+                // Aux key
+                case 79: // key o: change the selected object to the next object in the list.
+                    selectObj = (selectObj + 1) % objects.length;
                     break;
             }
         }
@@ -406,10 +389,6 @@ var render = function() {
     projectionMatrix = perspective(fovy, 1/ratio, near, far);
     gl.uniformMatrix4fv( projectionMatrixLoc, false, flatten(projectionMatrix) );
 
-    // create rotation matrix from quaternion
-    //rotateMatrix = createRotMatrixFromQuat( rquat );
-    //gl.uniformMatrix4fv( rotateMatrixLoc, false, flatten(rotateMatrix) );
-
     for (i = 0; i < objects.length; i++)
     {
         var object = objects[i];
@@ -425,7 +404,7 @@ var render = function() {
         createBuffers(object);
 
         if (selectObj == i) {
-                // muda a cor do objeto selecionado para um tom de azul.
+                // change the color of the selected object to blue.
                 if (flagSelect) {
                     var materialDiffuse_obj = vec4( 0.2, 0.3, 0.6, 1.0 );
                     var diffuseProduct_obj = mult(lightDiffuse, materialDiffuse_obj);
@@ -438,13 +417,11 @@ var render = function() {
                 flatten(diffuseProduct) );
 
 
-        // create translation matrix to set object in the origin and capture
-        // the manipulation of the objects.
+        // create translation matrix to set object in the origin.
         transMatrix = translate(negate(object.centroid));
         gl.uniformMatrix4fv( transMatrixLoc, false, flatten(transMatrix) );
 
-        // create translation matrix to set object in the origin and capture
-        // the manipulation of the objects.
+        // create translation matrix to capture the manipulation of translation.
         transMatrixObj = translate(negate(object.transValues));
         gl.uniformMatrix4fv( transMatrixObjLoc, false, flatten(transMatrixObj) );
 
@@ -454,6 +431,7 @@ var render = function() {
         scaleMatrix = mult(scaleMatrix, scaleM(object.scaleValues));
         gl.uniformMatrix4fv( scaleMatrixLoc, false, flatten(scaleMatrix) );
 
+        // create rotation matrix to capture the manipulation of rotation.
         rotateMatrix = object.rotationMatrix;
         gl.uniformMatrix4fv( rotateMatrixLoc, false, flatten(rotateMatrix) );
 
@@ -467,6 +445,7 @@ var render = function() {
         // draw triangles
         gl.drawArrays( gl.TRIANGLES, 0, object.pointsArray.length );
 
+        // Draw the xyz-axes in the select object.
         if (flagSelect && i == selectObj)
             drawAxes(object);
     }
@@ -538,14 +517,7 @@ function viewportToCanonicalCoordinates(x, y) {
 function drawAxes(object) {
     gl.lineWidth(2);
 
-    // var materialAmbient_axes = vec4( 0.3, 0.7, 0.2, 1.0 );
-    var materialAmbient_axes = vec4( 0, 1, 0, 1 );
     var lightAmbient_axes = vec4( 1, 1, 1, 1 );
-
-    var ambientProduct_axes = mult(lightAmbient_axes, materialAmbient_axes);
-    gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
-                  flatten(ambientProduct_axes) );
-
     var zeros = vec4(0.0, 0.0, 0.0, 1.0);
 
     var diffuseProduct_axes = mult(lightDiffuse, zeros);
@@ -559,19 +531,52 @@ function drawAxes(object) {
     var lines = [
         vec4(object.dimension.maxX*1.4, 0.0, 0.0, 1.0),
         vec4(0.0, 0.0, 0.0, 1.0),
+        vec4(-object.dimension.maxX*1.4, 0.0, 0.0, 1.0),
         vec4(0.0, object.dimension.maxY*1.3, 0.0, 1.0),
         vec4(0.0, 0.0, 0.0, 1.0),
-        vec4(0.0, 0.0, object.dimension.maxZ*1.4, 1.0)
+        vec4(0.0, -object.dimension.maxY*0.6, 0.0, 1.0),
+        vec4(0.0, 0.0, object.dimension.maxZ*1.4, 1.0),
+        vec4(0.0, 0.0, 0.0, 1.0),
+        vec4(0.0, 0.0, -object.dimension.maxZ*1.4, 1.0)
     ];
 
     var vBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer );
     gl.bufferData( gl.ARRAY_BUFFER, flatten(lines), gl.STATIC_DRAW );
 
+    // Draw x-axis.
+    var materialAmbient_axes = vec4( 0, 1, 0, 1 );
+    var ambientProduct_axes = mult(lightAmbient_axes, materialAmbient_axes);
+    gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
+                  flatten(ambientProduct_axes) );
+
     var vPosition = gl.getAttribLocation(program, "vPosition");
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
 
+    gl.drawArrays( gl.LINE_STRIP, 0, 3);
 
-    gl.drawArrays( gl.LINE_STRIP, 0, 5);
+    // Draw y-axis.
+    var materialAmbient_axes = vec4( 1, 0, 1, 1 );
+    var ambientProduct_axes = mult(lightAmbient_axes, materialAmbient_axes);
+    gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
+                  flatten(ambientProduct_axes) );
+
+    var vPosition = gl.getAttribLocation(program, "vPosition");
+    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPosition);
+
+    gl.drawArrays( gl.LINE_STRIP, 3, 3);
+
+    // Draw z-axis.
+    var materialAmbient_axes = vec4( 0, 0, 1, 1 );
+    var ambientProduct_axes = mult(lightAmbient_axes, materialAmbient_axes);
+    gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
+                  flatten(ambientProduct_axes) );
+
+    var vPosition = gl.getAttribLocation(program, "vPosition");
+    gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPosition);
+
+    gl.drawArrays( gl.LINE_STRIP, 6, 3);
 }
