@@ -52,9 +52,9 @@ var ambientColor, diffuseColor, specularColor;
 // camera definitions
 var trackball;
 
-var eye = vec3(1.0, 0.0, 0.0);
-var at = vec3(0.0, 0.0, 0.0);
-var up = vec3(0.0, 1.0, 0.0);
+var eye = vec4(1.0, 0.0, 0.0, 1.0);
+var at = vec4(0.0, 0.0, 0.0, 1.0);
+var up = vec4(0.0, 1.0, 0.0, 1.0);
 
 var cradius = 2.0;
 var ctheta = 0.0;
@@ -262,21 +262,20 @@ window.onload = function init() {
                 }
                 else {
                     if (mousedown) {
-                        // Nao tem objeto selecionado, entao rotaciona a camera.
-                        //var camera_quaternion = trackball.rotation(lastcanX, lastcanY,
-                                                                //actualcanX, actualcanY, 'q');
-
                         var camera_rotate = trackball.rotation(lastcanX, lastcanY,
-                                                                actualcanX, actualcanY, 'm');
-                        eye = vec4(eye, 0.0);
-                        at = vec4(at, 0.0);
-                        up = vec4(up, 0.0);
+                                                               actualcanX, actualcanY, 'm');
+
                         eye = multMatrixVec(camera_rotate, eye);
-                        at = multMatrixVec(camera_rotate, at);
-                        up = multMatrixVec(camera_rotate, up);
-                        //eye = camera_quaternion.rotate(eye);
-                        //console.log(eye);
-                    }                    
+                        at  = multMatrixVec(camera_rotate, at);
+                        up  = multMatrixVec(camera_rotate, up);
+
+                        // var camera_quaternion = trackball.rotation(lastcanX, lastcanY,
+                        //                                            actualcanX, actualcanY, 'q');
+                        //
+                        // eye = camera_quaternion.rotate(eye);
+                        // at  = camera_quaternion.rotate(at);
+                        // up  = camera_quaternion.rotate(up);
+                    }
                 }
                 break;
             case 3:
@@ -375,7 +374,7 @@ window.onload = function init() {
        "shininess"),materialShininess);
 
     // create eye
-    eye = vec3(cradius * Math.sin(ctheta) * Math.cos(cphi),
+    eye = vec4(cradius * Math.sin(ctheta) * Math.cos(cphi),
                cradius * Math.sin(ctheta) * Math.sin(cphi),
                cradius * Math.cos(ctheta));
 
