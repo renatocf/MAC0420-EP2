@@ -53,6 +53,7 @@ var ambientColor, diffuseColor, specularColor;
 
 // camera definitions
 var trackball;
+var camera_rotate = new RotationQuaternion(1.0, vec3(0.0, 0.0, 0.0));
 
 var eye = vec4(1.0, 0.0, 0.0, 1.0);
 var at = vec4(0.0, 0.0, 0.0, 1.0);
@@ -247,12 +248,10 @@ window.onload = function init() {
                 }
                 else {
                     if (mousedownL) {
-                        var camera_rotate = trackball.rotation(actualcanX, actualcanY,
-                                                               lastcanX, lastcanY, 'm');
+                        var trackball_q = trackball.rotation(actualcanX, actualcanY,
+                                                             lastcanX, lastcanY, 'q');
 
-                        eye = camera_rotate.rotate(eye);
-                        at = camera_rotate.rotate(at);
-                        up = camera_rotate.rotate(up);
+                        camera_rotate = camera_rotate.mul(trackball_q);
                     }
                 }
                 break;
@@ -391,9 +390,10 @@ var render = function() {
     var ratio = wrapper.clientHeight/wrapper.clientWidth;
 
     // create model view matrix
-    var e = vec3(eye[0], eye[1], eye[2]);
-    var a = vec3(at[0], at[1], at[2]);
-    var u = vec3(up[0], up[1], up[2]);
+    var e = camera_rotate.rotate(eye);
+    var a = camera_rotate.rotate(at);
+    var u = camera_rotate.rotate(up);
+
     modelViewMatrix = lookAt(e, a, u);
     modelViewMatrix = mult(modelViewMatrix, scaleM(vec3(ratio, ratio, ratio)));
 
