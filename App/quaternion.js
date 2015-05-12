@@ -98,7 +98,7 @@ RotationQuaternion.prototype = new Quaternion();
 RotationQuaternion.prototype.constructor = RotationQuaternion;
 
 /**
- * RotationQuartenion constructor
+ * RotationQuaternion constructor
  * Class representing the subgroup of Quaternions (IH) which represent
  * all possible rotations in IR³
  *

@@ -27,6 +27,7 @@
 
     // matriz de translacao
     uniform mat4 transMatrix;
+    uniform mat4 transMatrixObj;
 
     // matriz de escala
     uniform mat4 scaleMatrix;
@@ -61,8 +62,13 @@
     	   specular = vec4(0.0, 0.0, 0.0, 1.0);
         }
 
-        gl_Position = projectionMatrix * modelViewMatrix * rotateMatrix
-                       * scaleMatrix * transMatrix * vPosition;
+        gl_Position = projectionMatrix
+                      * modelViewMatrix
+                      * transMatrixObj
+                      * rotateMatrix
+                      * scaleMatrix
+                      * transMatrix
+                      * vPosition;
 
         fColor = ambient + diffuse +specular;
 

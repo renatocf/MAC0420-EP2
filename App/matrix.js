@@ -58,3 +58,20 @@ function multMatrixVec(matrix, vector) {
 
   return result;
 }
+
+function canonicalToCameraCoordinates(u, v, w, e) {
+
+    var translation = mat4(
+        vec4(1, 0, 0, -e[0]),
+        vec4(0, 1, 0, -e[1]),
+        vec4(0, 0, 1, -e[2]),
+        vec4()
+    );
+    var rotation = mat4(
+        vec4(u[0], u[1], u[2], 0),
+        vec4(v[0], v[1], v[2], 0),
+        vec4(w[0], w[1], w[2], 0),
+        vec4()
+    );
+    return mult(rotation, translation);
+}

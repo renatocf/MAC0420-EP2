@@ -24,8 +24,9 @@ var zoomCoords = [0.0, 0.0, 0.0];
 var normalMatrix, normalMatrixLoc;
 
 // translation and scale matrices
-var transMatrix, scaleMatrix;
-var transMatrixLoc, scaleMatrixLoc;
+var transMatrix, transMatrixObj, scaleMatrix;
+var transMatrixLoc, transMatrixObjLoc, scaleMatrixLoc;
+
 // rotate matrix
 var rotateMatrix, rotateMatrixLoc;
 
@@ -35,7 +36,8 @@ var lastX, lastY;
 var actualcanX, actualcanY;
 var lastcanX, lastcanY;
 
-var mousedown = false;
+var mousedownL = false;
+var mousedownR = false;
 
 var selectObj; // index of the selected object
 var flagSelect = false;
@@ -113,8 +115,10 @@ window.onload = function init() {
     // create translation and and scale matrices
     transMatrixLoc = gl.getUniformLocation(program, "transMatrix");
     scaleMatrixLoc = gl.getUniformLocation(program, "scaleMatrix");
+    transMatrixObjLoc = gl.getUniformLocation(program, "transMatrixObj");
+
     //create rotation matrix
-    rotateMatrixLoc = gl.getUniformLocation(program, "rotateMatrix");    
+    rotateMatrixLoc = gl.getUniformLocation(program, "rotateMatrix");
 
     document.getElementById('files').onchange = function (evt) {
 
@@ -140,15 +144,17 @@ window.onload = function init() {
         lastcanX = rst[0];
         lastcanY = rst[1];
 
-        mousedown = true;
-
         switch (evt.which) {
             case 1:
+                mousedownL = true;
                 if (evt.shiftKey) {
                     // Selecionar o objeto mais proximo da camera.
                     flagSelect = true;
                     selectObj = 0; // indice do objeto selecionado.
                 }
+                break;
+            case 3:
+                mousedownR = true;
                 break;
         }
 
@@ -162,7 +168,7 @@ window.onload = function init() {
         actualcanY = rst[1];
         switch (evt.which) {
             case 1:
-                if (flagSelect && mousedown) { // estamos manipulando um objeto.
+                if (flagSelect && mousedownL) { // estamos manipulando um objeto.
                     var dx = lastcanX - actualcanX;
                     var dy = lastcanY - actualcanY;
                     var dist = Math.sqrt(dx*dx + dy*dy);
@@ -172,31 +178,31 @@ window.onload = function init() {
                         dist = dist * objects[selectObj].radius;
                         if (flagX) {
                             if (actualcanX > lastcanX)
-                                objects[selectObj].centroid[0] -= dist;
+                                objects[selectObj].transValues[0] -= dist;
                             else
-                                objects[selectObj].centroid[0] += dist;
+                                objects[selectObj].transValues[0] += dist;
                         }
                         else if (flagY) {
                             if (actualcanY > lastcanY)
-                                objects[selectObj].centroid[1] -= dist;
+                                objects[selectObj].transValues[1] -= dist;
                             else
-                                objects[selectObj].centroid[1] += dist;
+                                objects[selectObj].transValues[1] += dist;
                         }
                         else if (flagZ) {
                            if ((actualcanX >= lastcanX && actualcanY >= lastcanY) ||
                                 (actualcanX <= lastcanX && actualcanY >= lastcanY))
-                                objects[selectObj].centroid[2] -= dist;
+                                objects[selectObj].transValues[2] -= dist;
                             else
-                                objects[selectObj].centroid[2] += dist;
+                                objects[selectObj].transValues[2] += dist;
 
                             // Keep objects visible.
                             if (objects[selectObj].radius < 1) {
-                                if (objects[selectObj].centroid[2] < -1)
-                                    objects[selectObj].centroid[2] = -1;
+                                if (objects[selectObj].transValues[2] < -1)
+                                    objects[selectObj].transValues[2] = -1;
                             }
                             else
-                                if (objects[selectObj].centroid[2] < -1 * objects[selectObj].radius)
-                                    objects[selectObj].centroid[2] = -1 * objects[selectObj].radius;
+                                if (objects[selectObj].transValues[2] < -1 * objects[selectObj].radius)
+                                    objects[selectObj].transValues[2] = -1 * objects[selectObj].radius;
                         }
 
                         lastcanX = actualcanX;
@@ -233,14 +239,14 @@ window.onload = function init() {
                         var trackball_obj = new Trackball(objects[selectObj].centroid,
                                                           Math.abs(objects[selectObj].radius)/2);
 
-                        objects[selectObj].rotationMatrix = mult(objects[selectObj].rotationMatrix, 
+                        objects[selectObj].rotationMatrix = mult(objects[selectObj].rotationMatrix,
                             trackball_obj.rotation(lastcanX, lastcanY, actualcanX, actualcanY, 'm'));
 
                         console.log(objects[selectObj].rotationMatrix);
                     }
                 }
                 else {
-                    if (mousedown) {
+                    if (mousedownL) {
                         var camera_rotate = trackball.rotation(actualcanX, actualcanY,
                                                                lastcanX, lastcanY, 'm');
 
@@ -251,28 +257,50 @@ window.onload = function init() {
                 }
                 break;
             case 3:
-                // Zoom in and zoom out.
-                var dx = lastcanX - actualcanX;
-                var dy = lastcanY - actualcanY;
-                var dist = Math.sqrt(dx*dx + dy*dy);
+                if (mousedownR) {
+                    // Zoom in and zoom out.
+                    var dx = lastcanX - actualcanX;
+                    var dy = lastcanY - actualcanY;
+                    var dist = Math.sqrt(dx*dx + dy*dy);
 
-                if (actualcanX > lastcanX || actualcanY > lastcanY)
-                    zoomCoords[2] = zoomCoords[2] + dist;
-                else
-                    zoomCoords[2] = zoomCoords[2] - dist;
+                    var new_near = near, new_far = far;
 
-                // Keep objects visible.
-                if (zoomCoords[2] > 1.5)
-                    zoomCoords[2] = 1.5;
-                else if (zoomCoords[2] < -7)
-                    zoomCoords[2] = -7;
+                    if ((actualcanX >= lastcanX && actualcanY >= lastcanY) ||
+                        (actualcanX <= lastcanX && actualcanY >= lastcanY)) {
+                        // zoomCoords[2] = zoomCoords[2] + dist;
+                        new_far  += dist/2;
+                        new_near -= dist/2;
+                    }
+                    else {
+                        // zoomCoords[2] = zoomCoords[2] - dist;
+                        new_far  -= dist/2;
+                        new_near += dist/2;
+                    }
 
+                    if (new_far - new_near < 1) break;
+                    if (new_far - new_near > 16) break;
+
+                    far = new_far;
+                    near = new_near;
+                    console.log("near: " + near + " far: " + far);
+                    cradius = far-near;
+
+                    // create eye
+                    eye = vec4(cradius * Math.sin(ctheta) * Math.cos(cphi),
+                               cradius * Math.sin(ctheta) * Math.sin(cphi),
+                               cradius * Math.cos(ctheta));
+
+                    // create trackball
+                    trackball = new Trackball(vec3(0, 0, 0), Math.abs(near-far)/2);
+                }
                 break;
         }
     };
 
     canvas.onmouseup = function (evt) {
-        mousedown = false;
+        mousedownL = false;
+        mousedownR = false;
+
         flagS = flagR = flagT = false;
         flagX = flagY = flagZ = false;
     }
@@ -415,6 +443,11 @@ var render = function() {
         transMatrix = translate(negate(object.centroid));
         gl.uniformMatrix4fv( transMatrixLoc, false, flatten(transMatrix) );
 
+        // create translation matrix to set object in the origin and capture
+        // the manipulation of the objects.
+        transMatrixObj = translate(negate(object.transValues));
+        gl.uniformMatrix4fv( transMatrixObjLoc, false, flatten(transMatrixObj) );
+
         // create scale matrix to fit object inside the canvas and capture the
         // manipulation of the objects.
         scaleMatrix = scaleM(vec3(1/radius, 1/radius, 1/radius));
@@ -475,7 +508,12 @@ function loadObject(data) {
 
     // Insere os valores de escala do objeto. Inicializados com 1, pois
     // o objeto ainda não foi manipulado.
-    newObject.scaleValues = [1.0, 1.0, 1.0];
+    newObject.scaleValues = vec3(1.0, 1.0, 1.0);
+
+    // Insere os valores de translação do objeto. Inicializados com 0, pois
+    // o objeto ainda não foi manipulado.
+    newObject.transValues = vec3(0.0, 0.0, 0.0);
+
     // Insere os angulos de rotacao do objeto. Inicializados com 0, pois
     // o objeto ainda não foi manipulado.
     newObject.rotationMatrix = mat4(1);
@@ -500,20 +538,26 @@ function viewportToCanonicalCoordinates(x, y) {
 function drawAxes(object) {
     gl.lineWidth(2);
 
-    var materialAmbient_axes = vec4( 0.3, 0.7, 0.2, 1.0 );
-    var ambientProduct_axes = mult(lightAmbient, materialAmbient_axes);
+    // var materialAmbient_axes = vec4( 0.3, 0.7, 0.2, 1.0 );
+    var materialAmbient_axes = vec4( 0, 1, 0, 1 );
+    var lightAmbient_axes = vec4( 1, 1, 1, 1 );
+
+    var ambientProduct_axes = mult(lightAmbient_axes, materialAmbient_axes);
     gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
-                        flatten(ambientProduct_axes) );
+                  flatten(ambientProduct_axes) );
+
     var zeros = vec4(0.0, 0.0, 0.0, 1.0);
+
     var diffuseProduct_axes = mult(lightDiffuse, zeros);
     gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
-                        flatten(diffuseProduct_axes) );
+                  flatten(diffuseProduct_axes) );
+
     var specularProduct_axes = mult(lightSpecular, zeros);
     gl.uniform4fv(gl.getUniformLocation(program, "specularProduct"),
-                        flatten(specularProduct_axes) );
+                  flatten(specularProduct_axes) );
 
     var lines = [
-        vec4(object.dimension.maxX*1.2, 0.0, 0.0, 1.0),
+        vec4(object.dimension.maxX*1.4, 0.0, 0.0, 1.0),
         vec4(0.0, 0.0, 0.0, 1.0),
         vec4(0.0, object.dimension.maxY*1.3, 0.0, 1.0),
         vec4(0.0, 0.0, 0.0, 1.0),
