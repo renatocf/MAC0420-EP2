@@ -39,7 +39,7 @@ Trackball.prototype.rotation = function(x1, y1, x2, y2, mORq) {
 
     if (mORq == 'q') // return a quaternion
         return createRotationQuaternionFromAngleAndAxis(theta, N).normalize();
-    else // return a matrix
+    else
         return rotate(theta, N);
 }
 
