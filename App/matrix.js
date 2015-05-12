@@ -37,7 +37,6 @@ function invert4x4 (matrix) {
   return result;
 }
 
-// not working!
 function multMatrixVec(matrix, vector) {
 
   var result = [];
@@ -53,8 +52,6 @@ function multMatrixVec(matrix, vector) {
     sum = 0.0;
     for ( var j = 0; j < vector.length; j++ ) {      
       sum += matrix[i][j] * vector[j];
-      console.log(matrix[i][j] * vector[j]);
-      console.log("sum " + j + "  " + sum);
     }
     result.push( sum );    
  }
