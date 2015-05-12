@@ -161,11 +161,9 @@ window.onload = function init() {
         var rst = viewportToCanonicalCoordinates(actualX, actualY);
         actualcanX = rst[0];
         actualcanY = rst[1];
-        console.log("MOVE");
         switch (evt.which) {
             case 1:
                 if (flagSelect && mousedown) { // estamos manipulando um objeto.
-                    console.log("SELECT");
                     var dx = lastcanX - actualcanX;
                     var dy = lastcanY - actualcanY;
                     var dist = Math.sqrt(dx*dx + dy*dy);
