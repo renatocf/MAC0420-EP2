@@ -242,11 +242,11 @@ window.onload = function init() {
                 else {
                     if (mousedown) {
                         var camera_rotate = trackball.rotation(actualcanX, actualcanY,
-                                                               lastcanX, lastcanY,'m');
+                                                               lastcanX, lastcanY, 'm');
 
-                        eye = multMatrixVec(camera_rotate, eye);
-                        at  = multMatrixVec(camera_rotate, at);
-                        up  = multMatrixVec(camera_rotate, up);
+                        eye = camera_rotate.rotate(eye);
+                        at = camera_rotate.rotate(at);
+                        up = camera_rotate.rotate(up);
                     }
                 }
                 break;

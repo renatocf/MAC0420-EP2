@@ -14,7 +14,9 @@
  */
 function Quaternion(scalar, vectorial) {
     this.s = scalar;
-    this.v = vectorial;
+    if (typeof(vectorial) !== 'undefined') {
+        this.v = vectorial.slice(0, 3);
+    }
 }
 
 /**
