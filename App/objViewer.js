@@ -16,6 +16,10 @@ var materialShininess = 100.0;
 var modelViewMatrix, projectionMatrix;
 var modelViewMatrixLoc, projectionMatrixLoc;
 
+// tranlation matrix responsible for zoom in and zoom out.
+var zoomMatrix;
+var zoomCoords = [0.0, 0.0, 0.0];
+
 // normal matrix
 var normalMatrix, normalMatrixLoc;
 
@@ -24,10 +28,6 @@ var transMatrix, scaleMatrix;
 var transMatrixLoc, scaleMatrixLoc;
 // rotate matrix
 var rotateMatrix, rotateMatrixLoc;
-
-// tranlation matrix responsible for zoom in and zoom out.
-var zoomMatrix;
-var zoomCoords = [0.0, 0.0, 0.0];
 
 // Mouse click coordinates
 var actualX, actualY;
@@ -113,9 +113,8 @@ window.onload = function init() {
     // create translation and and scale matrices
     transMatrixLoc = gl.getUniformLocation(program, "transMatrix");
     scaleMatrixLoc = gl.getUniformLocation(program, "scaleMatrix");
-
     //create rotation matrix
-    rotateMatrixLoc = gl.getUniformLocation(program, "rotateMatrix");
+    rotateMatrixLoc = gl.getUniformLocation(program, "rotateMatrix");    
 
     document.getElementById('files').onchange = function (evt) {
 
@@ -176,18 +175,12 @@ window.onload = function init() {
                                 objects[selectObj].centroid[0] -= dist;
                             else
                                 objects[selectObj].centroid[0] += dist;
-
-                            //flagT = false;
-                            //flagX = false;
                         }
                         else if (flagY) {
                             if (actualcanY > lastcanY)
                                 objects[selectObj].centroid[1] -= dist;
                             else
                                 objects[selectObj].centroid[1] += dist;
-
-                            //flagT = false;
-                            //flagY = false;
                         }
                         else if (flagZ) {
                            if ((actualcanX >= lastcanX && actualcanY >= lastcanY) ||
@@ -204,9 +197,6 @@ window.onload = function init() {
                             else
                                 if (objects[selectObj].centroid[2] < -1 * objects[selectObj].radius)
                                     objects[selectObj].centroid[2] = -1 * objects[selectObj].radius;
-
-                            //flagT = false;
-                            //flagZ= false;
                         }
 
                         lastcanX = actualcanX;
@@ -219,18 +209,12 @@ window.onload = function init() {
                                 objects[selectObj].scaleValues[0] += dist;
                             else
                                 objects[selectObj].scaleValues[0] -= dist;
-
-                            //flagS = false;
-                            //flagX = false;
                         }
                         else if (flagY) {
                             if (actualcanY > lastcanY)
                                 objects[selectObj].scaleValues[1] += dist;
                             else
                                 objects[selectObj].scaleValues[1] -= dist;
-
-                            //flagS = false;
-                            //flagY = false;
                         }
                         else if (flagZ) {
                             if ((actualcanX >= lastcanX && actualcanY >= lastcanY) ||
@@ -238,16 +222,11 @@ window.onload = function init() {
                                 objects[selectObj].scaleValues[2] += dist;
                             else
                                 objects[selectObj].scaleValues[2] -= dist;
-
-                            //flagS = false;
-                            //flagZ = false;
                         }
 
                         lastcanX = actualcanX;
                         lastcanY = actualcanY;
                     }
-                    // Foi escolhida a opcao de rotacao.
-                    // Não está funcionando muito bem.
                     else if (flagR) {
                         // Rotacionar o objeto atraves de um trackaball.
 
@@ -280,11 +259,11 @@ window.onload = function init() {
                 break;
             case 3:
                 // Zoom in and zoom out.
-                var dx = mdowncanX - mupcanX;
-                var dy = mdowncanY - mupcanY;
+                var dx = lastcanX - actualcanX;
+                var dy = lastcanY - actualcanY;
                 var dist = Math.sqrt(dx*dx + dy*dy);
 
-                if (mupcanX > mdowncanX || mupcanY > mdowncanY)
+                if (actualcanX > lastcanX || actualcanY > lastcanY)
                     zoomCoords[2] = zoomCoords[2] + dist;
                 else
                     zoomCoords[2] = zoomCoords[2] - dist;
@@ -306,7 +285,6 @@ window.onload = function init() {
     }
 
     document.onkeyup = function (evt) {
-        //console.log(evt.keyCode);
         if (flagSelect) {  // if there is a selected object.
             switch (evt.keyCode) {
                 case 46: // delete key
@@ -416,6 +394,13 @@ var render = function() {
         var object = objects[i];
         var radius = object.radius;
 
+        gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
+                        flatten(ambientProduct));
+        gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
+                         flatten(diffuseProduct) );
+        gl.uniform4fv(gl.getUniformLocation(program, "specularProduct"),
+                         flatten(specularProduct) );
+
         createBuffers(object);
 
         if (selectObj == i) {
@@ -500,10 +485,6 @@ function loadObject(data) {
     newObject.scaleValues = [1.0, 1.0, 1.0];
     // Insere os angulos de rotacao do objeto. Inicializados com 0, pois
     // o objeto ainda não foi manipulado.
-    //var aux_rotate = rotate(0, [1, 0, 0]);
-    //aux_rotate = mult(aux_rotate, rotate(0, [0, 1, 0]));
-    ///aux_rotate = mult(aux_rotate, rotate(0, [0, 0, 1]));
-    //newObject.rotationMatrix = aux_rotate;
     newObject.rotationMatrix = mat4(1);
 
     objects.push(newObject);
@@ -526,12 +507,17 @@ function viewportToCanonicalCoordinates(x, y) {
 function drawAxes(object) {
     gl.lineWidth(2);
 
-    // As linhas não estão ficando verdes!
-    // Não sei por que!
-    var materialDiffuse_axes = vec4( 0.0, 1.0, 0.0, 1.0 );
-    var diffuseProduct_axes = mult(lightDiffuse, materialDiffuse_axes);
+    var materialAmbient_axes = vec4( 0.3, 0.7, 0.2, 1.0 );
+    var ambientProduct_axes = mult(lightAmbient, materialAmbient_axes);
+    gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
+                        flatten(ambientProduct_axes) );
+    var zeros = vec4(0.0, 0.0, 0.0, 1.0);
+    var diffuseProduct_axes = mult(lightDiffuse, zeros);
     gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
                         flatten(diffuseProduct_axes) );
+    var specularProduct_axes = mult(lightSpecular, zeros);
+    gl.uniform4fv(gl.getUniformLocation(program, "specularProduct"),
+                        flatten(specularProduct_axes) );
 
     var lines = [
         vec4(object.dimension.maxX*1.2, 0.0, 0.0, 1.0),
