@@ -252,23 +252,14 @@ window.onload = function init() {
                     // Não está funcionando muito bem.
                     else if (flagR) {
                         // Rotacionar o objeto atraves de um trackaball.
-                        centro_trackball = [objects[selectObj].centroid[0],
-                                            objects[selectObj].centroid[1],
-                                            objects[selectObj].centroid[2] ];
 
-
-                        trackball_obj = new Trackball(vec3(centro_trackball), 
-                                                       Math.abs(objects[selectObj].radius)/2);
+                        var trackball_obj = new Trackball(objects[selectObj].centroid,
+                                                          Math.abs(objects[selectObj].radius)/2);
 
                         objects[selectObj].rotationMatrix = mult(objects[selectObj].rotationMatrix, 
                             trackball_obj.rotation(lastcanX, lastcanY, actualcanX, actualcanY, 'm'));
 
                         console.log(objects[selectObj].rotationMatrix);
-
-                        //flagR = false;
-                        //flagZ = flagY = flagX = false;
-
-                        //rotateMatrix = object_quaternion.rotate(0);
                     }
                 }
                 else {
