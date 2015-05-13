@@ -7,7 +7,7 @@
 
 * Diretórios
 
-    Este programa contém 3 diretórios: 
+    Este programa contém 3 diretórios:
     - App, com os arquivos .html, .js e .css;
     - Common, com utilitários JavaScript para comunicação com o WebGL.
     - Objs, com exemplos de arquivos .obj;
@@ -20,59 +20,63 @@
     Arquivos com extensão .obj podem ser carregados para exibição.
     Mais de um .obj pode ser carregado ao mesmo tempo. Ao carregar o
     objeto este inicialmente aparecerá no centro da cena.
-    
+
     Existem duas manipulações possíveis: da câmera e de um objeto.
-    
+
     Câmera:
-    	- Ao clicar com o botão esquerdo do mouse, a câmera rotaciona de 
-    	  acordo com o movimento do mouse (mantendo o botão esquerdo 
-    	  precionado).
-    	- Ao clicar com o botão direito do mouse, consegue-se dar um zoom 
-    	  in ou um zoom out na cena (mantendo o botão direito precisonado).
-    
+        - Ao clicar com o botão esquerdo do mouse, a câmera rotaciona de
+          acordo com o movimento do mouse (mantendo o botão esquerdo
+          precionado).
+        - Ao clicar com o botão direito do mouse, consegue-se dar um zoom
+          in ou um zoom out na cena (mantendo o botão direito precisonado).
+
     Objeto:
-    	- SHIFT+click: o primeiro objeto da lista de objetos é selecionado. 
-    	  Quando um objeto é selecionado este muda de cor para azul e são 
-    	  desenhados os eixos x, y, z do objeto. O eixo x é desenhado com a 
-    	  cor verde, o eixo y com a cor rosa e o eixo z com a cor azul.
-    	- Tecla 'o': muda o objeto selecionado para o próximo
-    	  objeto da lista de objetos.
-    	- Tecla 'Esc': de-seleciona o objeto.
-    	- Tecla 'x' ou 'Delete': deleta o objeto.
-    	
-    	Tendo um objeto selecionado, este mode ser manipulado.
-    	- Escala:
+        - SHIFT+click: objeto clicado é selecionado.
+          Quando um objeto é selecionado este muda de cor para azul e são
+          desenhados os eixos x, y, z do objeto. O eixo x é desenhado com a
+          cor verde, o eixo y com a cor rosa e o eixo z com a cor azul.
+
+          Caso a intersecção entre o raio e os triângulos falhe, o
+          primeiro objeto da lista de objetos é utilizado.
+
+        - Tecla 'o': muda o objeto selecionado para o próximo
+          objeto da lista de objetos.
+        - Tecla 'Esc': de-seleciona o objeto.
+        - Tecla 'x' ou 'Delete': deleta o objeto.
+
+        Tendo um objeto selecionado, este mode ser manipulado.
+        - Escala:
           - Ao apertar tecla 'S' e depois a tecla 'x' o objeto é escalado no
             eixo x de forma proprocional ao movimento do mouse. (Ao soltar
-            o botão esquerdo do mouse a manipulação de escala é 
+            o botão esquerdo do mouse a manipulação de escala é
             de-selecionada)
           - Ao apertar tecla 'S' e depois a tecla 'y' o objeto é escalado no
             eixo y de forma proprocional ao movimento do mouse. (Ao soltar
-            o botão esquerdo do mouse a manipulação de escala é 
+            o botão esquerdo do mouse a manipulação de escala é
             de-selecionada)
           - Ao apertar tecla 'S' e depois a tecla 'z' o objeto é escalado no
             eixo z de forma proprocional ao movimento do mouse. (Ao soltar
-            o botão esquerdo do mouse a manipulação de escala é 
+            o botão esquerdo do mouse a manipulação de escala é
             de-selecionada)
-       	- Translação:
-       	  - Ao apertar tecla 'T' e depois a tecla 'x' o objeto é transladado 
-       	    no eixo x de forma proprocional ao movimento do mouse. (Ao soltar
-            o botão esquerdo do mouse a manipulação de translação é 
+        - Translação:
+          - Ao apertar tecla 'T' e depois a tecla 'x' o objeto é transladado
+            no eixo x de forma proprocional ao movimento do mouse. (Ao soltar
+            o botão esquerdo do mouse a manipulação de translação é
             de-selecionada)
-          - Ao apertar tecla 'T' e depois a tecla 'y' o objeto é transladado 
+          - Ao apertar tecla 'T' e depois a tecla 'y' o objeto é transladado
             no eixo y de forma proprocional ao movimento do mouse. (Ao soltar
-            o botão esquerdo do mouse a manipulação de translação é 
+            o botão esquerdo do mouse a manipulação de translação é
             de-selecionada)
-          - Ao apertar tecla 'T' e depois a tecla 'z' o objeto é transladado 
+          - Ao apertar tecla 'T' e depois a tecla 'z' o objeto é transladado
             no eixo z de forma proprocional ao movimento do mouse. (Ao soltar
-            o botão esquerdo do mouse a manipulação de translação é 
+            o botão esquerdo do mouse a manipulação de translação é
             de-selecionada)
         - Rotação:
-          - Ao apertar a tecla 'R' o objeto é rotacionado de acordo com o 
-            movimento do mouse. (Ao soltar o botão esquerdo do mouse a 
-            manipulação de rotação é de-selecionada)          	
-    	
-    	
+          - Ao apertar a tecla 'R' o objeto é rotacionado de acordo com o
+            movimento do mouse. (Ao soltar o botão esquerdo do mouse a
+            manipulação de rotação é de-selecionada)
+
+
     Existem 3 opções de coloração:
     - Flat shading: coloração definida pelas normais dos triângulos que
       formam cada face;
@@ -82,4 +86,4 @@
 
     Por padrão, se não houver normais no arquivo .obj, o programa
     exibirá o smooth shading.
-    
+
