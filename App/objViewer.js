@@ -149,9 +149,20 @@ window.onload = function init() {
             case 1:
                 mousedownL = true;
                 if (evt.shiftKey) {
-                    // Select object.
+                    // Select object
                     flagSelect = true;
-                    selectObj = 0; // index of selected object.
+
+                    var matrix = invert4x4(mult(projectionMatrix, modelViewMatrix));
+
+                    var clickPoint = multMatrixVec(
+                        invert4x4(mult(projectionMatrix, modelViewMatrix)),
+                        vec4(lastcanX, lastcanY, 1)
+                    );
+
+                    selectObj = findClosestObject(clickPoint);
+
+                    if (selectObj < 0)
+                        selectObj = 0; // index of selected object.
                 }
                 break;
             case 3:
@@ -568,4 +579,30 @@ function drawAxes(object) {
     gl.enableVertexAttribArray(vPosition);
 
     gl.drawArrays( gl.LINE_STRIP, 4, 2);
+}
+
+function findClosestObject(clickPoint) {
+
+    var ray = new Ray(eye, clickPoint);
+
+    var min_t = Infinity; var min_i = objects.length;
+
+    for (var i = 0; i < objects.length; i++) {
+        for (var j = 0; j < objects[i].pointsArray.length; j += 3) {
+
+            var a = objects[i].pointsArray[j];
+            var b = objects[i].pointsArray[j+1];
+            var c = objects[i].pointsArray[j+2];
+
+            var t = ray.intersect(a, b, c, near, far);
+            if (t >= 0 && t < min_t) {
+                min_t = t; min_i = i;
+            }
+        }
+    }
+
+    if (min_i < objects.length)
+        return min_i;
+
+    return -1;
 }
