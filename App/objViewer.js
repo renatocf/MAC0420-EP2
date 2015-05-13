@@ -149,9 +149,9 @@ window.onload = function init() {
             case 1:
                 mousedownL = true;
                 if (evt.shiftKey) {
-                    // Select objetc.
+                    // Select object.
                     flagSelect = true;
-                    selectObj = 0; // incdex of selected object.
+                    selectObj = 0; // index of selected object.
                 }
                 break;
             case 3:
@@ -409,10 +409,6 @@ var render = function() {
                                 flatten(diffuseProduct_obj) );
                 }
             }
-        else
-            gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
-                flatten(diffuseProduct) );
-
 
         // create translation matrix to set object in the origin.
         transMatrix = translate(negate(object.centroid));
@@ -434,9 +430,9 @@ var render = function() {
 
         // create normal matrix: Matrix that fix the normal vector after the transformations
         var aux_matrix = mult(modelViewMatrix, transMatrix);
-        aux_matrix = mult(aux_matrix, scaleMatrix);
-        aux_matrix = mult(aux_matrix, rotateMatrix);
-        normalMatrix = transpose( invert4x4( aux_matrix ) );
+        aux_matrix     = mult(aux_matrix, scaleMatrix);
+        aux_matrix     = mult(aux_matrix, rotateMatrix);
+        normalMatrix   = transpose( invert4x4( aux_matrix ) );
         gl.uniformMatrix4fv( normalMatrixLoc, false, flatten(normalMatrix) );
 
         // draw triangles
@@ -482,20 +478,19 @@ function loadObject(data) {
         }
     }
 
-    // Insere os valores de escala do objeto. Inicializados com 1, pois
-    // o objeto ainda não foi manipulado.
+    // Insert scale values, initialized to 1 because there was not 
+    // handling yet.
     newObject.scaleValues = vec3(1.0, 1.0, 1.0);
 
-    // Insere os valores de translação do objeto. Inicializados com 0, pois
-    // o objeto ainda não foi manipulado.
+    // Insert translation values, initialized to 0 because there was not 
+    // handling yet.
     newObject.transValues = vec3(0.0, 0.0, 0.0);
 
-    // Insere os angulos de rotacao do objeto. Inicializados com 0, pois
-    // o objeto ainda não foi manipulado.
+    // Insert rotation matriz, initialized with the identity because 
+    // there was not handling yet.
     newObject.rotationMatrix = mat4(1);
 
-    objects.push(newObject);
-    console.log(newObject);
+    objects.push(newObject);    
 }
 
 function viewportToCanonicalCoordinates(x, y) {
@@ -505,7 +500,7 @@ function viewportToCanonicalCoordinates(x, y) {
     var can_y;
 
     can_x = (x * (2/vp_right)) - 1;
-    // O ponto (0, 0) no canvas e o conto superior esquerdo.
+    // Point (0, 0) in canvas is the upper left coner.
     can_y = 1 - (y * (2/vp_top));
 
     return [can_x, can_y];
@@ -528,13 +523,10 @@ function drawAxes(object) {
     var lines = [
         vec4(object.dimension.maxX*1.4, 0.0, 0.0, 1.0),
         vec4(0.0, 0.0, 0.0, 1.0),
-        vec4(-object.dimension.maxX*1.4, 0.0, 0.0, 1.0),
         vec4(0.0, object.dimension.maxY*1.3, 0.0, 1.0),
         vec4(0.0, 0.0, 0.0, 1.0),
-        vec4(0.0, -object.dimension.maxY*0.6, 0.0, 1.0),
         vec4(0.0, 0.0, object.dimension.maxZ*1.4, 1.0),
-        vec4(0.0, 0.0, 0.0, 1.0),
-        vec4(0.0, 0.0, -object.dimension.maxZ*1.4, 1.0)
+        vec4(0.0, 0.0, 0.0, 1.0)
     ];
 
     var vBuffer = gl.createBuffer();
@@ -551,7 +543,7 @@ function drawAxes(object) {
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
 
-    gl.drawArrays( gl.LINE_STRIP, 0, 3);
+    gl.drawArrays( gl.LINE_STRIP, 0, 2);
 
     // Draw y-axis.
     var materialAmbient_axes = vec4( 1, 0, 1, 1 );
@@ -563,7 +555,7 @@ function drawAxes(object) {
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
 
-    gl.drawArrays( gl.LINE_STRIP, 3, 3);
+    gl.drawArrays( gl.LINE_STRIP, 2, 2);
 
     // Draw z-axis.
     var materialAmbient_axes = vec4( 0, 0, 1, 1 );
@@ -575,5 +567,5 @@ function drawAxes(object) {
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
 
-    gl.drawArrays( gl.LINE_STRIP, 6, 3);
+    gl.drawArrays( gl.LINE_STRIP, 4, 2);
 }
