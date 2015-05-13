@@ -80,6 +80,6 @@
       normais das faces;
     - File normals: coloração definida pelas normais do arquivo .obj.
 
-    Por padrão, se não houver normais no arquivo .obj, será exibido o
-    programa exibirá o smooth shading.
+    Por padrão, se não houver normais no arquivo .obj, o programa
+    exibirá o smooth shading.
     
