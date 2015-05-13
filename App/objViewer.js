@@ -380,9 +380,6 @@ var render = function() {
     modelViewMatrix = lookAt(e, a, u);
     modelViewMatrix = mult(modelViewMatrix, scaleM(vec3(ratio, ratio, ratio)));
 
-    zoomMatrix = translate( zoomCoords );
-    modelViewMatrix = mult(modelViewMatrix, zoomMatrix);
-
     gl.uniformMatrix4fv( modelViewMatrixLoc, false, flatten(modelViewMatrix) );
 
     // create persperctive projection matrix
